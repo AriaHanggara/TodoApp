@@ -1,0 +1,11 @@
+<!-- edit-modal.html -->
+<dialog id="edit-client-modal" 
+        class="modal" 
+        open
+        hx-on:client-list-changed="this.close()">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Edit Client</h3>
+
+    {% include 'client/edit-form-fields.html' %}
+  </div>
+</dialog>

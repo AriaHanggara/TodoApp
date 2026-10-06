@@ -1,0 +1,47 @@
+<!-- contract/form-fields.html -->
+
+<form id="add-contract-form" 
+      hx-post="{% url 'todo_app:contract_create' %}" 
+      hx-target="#add-contract-form" 
+      hx-swap="outerHTML"
+      class="space-y-4">
+      
+    {% csrf_token %}
+    
+    <!-- Input Client  -->
+    <fieldset class="form-control w-full">
+      <legend class="label">Klien</legend>
+      {{ form.client }}
+        {% if form.client.errors %}
+            <span class="text-error text-xs mt-1">{{ form.client.errors|first }}</span>
+        {% endif %}
+    </fieldset>
+
+    <!-- Kontak Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Total Pertemuan</span>
+        </label>
+        {{ form.total_pertemuan }}
+        {% if form.total_pertemuan.errors %}
+          <label class="label text-error">{{ form.total_pertemuan.errors }}</label>
+        {% endif %}
+    </div>
+
+    <!-- Kota Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Total Biaya</span>
+        </label>
+        {{ form.total_biaya }}
+        {% if form.total_biaya.errors %}
+          <label class="label text-error">{{ form.total_biaya.errors }}</label>
+        {% endif %}
+    </div>
+
+    <!-- Tombol Aksi di bagian bawah Form -->
+    <div class="modal-action">
+        <button type="button" class="btn" onclick="document.getElementById('add-contract-modal').close()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+    </div>
+</form>

@@ -1,0 +1,128 @@
+{% extends '.././base.html' %} 
+{% block title %}<title>Daftar Kontrak</title>{% endblock title %} 
+
+{% block content %}
+<!-- Search + Filters + Add Button -->
+<div class="flex flex-col gap-4 mb-8 px-4 w-full max-w-2xl mx-auto items-center">
+  <!-- Search + Add New Task -->
+  <div class="flex flex-col md:flex-row gap-3 justify-center items-center w-full">
+    <!-- Search Bar -->
+    <label class="input input-bordered flex items-center gap-2 w-full md:max-w-md">
+      <svg class="h-5 w-5 opacity-60 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
+           viewBox="0 0 24 24" stroke="currentColor">
+        <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </g>
+      </svg>
+      <input
+        type="search"
+        name="search"
+        class="grow min-w-0"
+        placeholder="Search contract..."
+        hx-get="{% url 'todo_app:search_contract' %}"
+        hx-trigger="keyup changed delay:500ms, search"
+        hx-target="#contract-table-container"
+        hx-swap="outerHTML"
+        hx-include="[name='search']"
+        hx-sync="this:abort"
+        hx-indicator="#spinner"
+        hx-on::before-request="document.getElementById('tbody').style.opacity= 0.4;"
+        hx-on::after-request="document.getElementById('tbody').style.opacity= 1.0;"
+      />
+      {% include 'partial/loading-bar.html' %}
+    </label>
+
+    <!-- Add New Contract Button -->
+    <button
+      onclick="document.getElementById('add-contract-modal').showModal()"
+      class="btn btn-primary w-full md:w-auto shrink-0"
+    >➕ Add New Contract</button>
+
+    {% include 'contract/add-modal.html' %}
+  </div>
+
+  <!-- sini -->
+
+  <!-- sini -->
+
+
+</div>
+
+<!-- Container Tabel & Pagination -->
+{% include 'contract/table-container.html' %}
+
+
+
+<script>
+
+    // KETIKA SUKSES: Tutup modal dan Reset Form
+    document.body.addEventListener('contractListChanged', function() {
+        const addModal = document.getElementById('add-contract-modal');
+        if (addModal && typeof addModal.close === 'function') {
+            addModal.close(); 
+            $('#id_client').remove();
+        }
+
+        const form = document.getElementById('add-contract-form');
+        if (form) {
+            form.reset(); 
+        }
+    });
+
+    // NOTIFIKASI TOAST
+    document.body.addEventListener('showToast', function(evt) {
+        const message = evt.detail.message;
+        const alertType = evt.detail.type;
+        
+        const toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) return;
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert ${alertType} shadow-lg transition-all duration-300 transform translate-y-2 opacity-0`;
+        alertDiv.innerHTML = `<div><span>${message}</span></div>`;
+
+        toastContainer.appendChild(alertDiv);
+
+        setTimeout(() => {
+            alertDiv.classList.remove('opacity-0', 'translate-y-2');
+        }, 10);
+
+        setTimeout(() => {
+            alertDiv.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 300);
+        }, 3000);
+    });
+</script>
+
+
+<!-- Script Helper untuk Mengelola Query Parameters Secara Dinamis -->
+<script>
+  function filterContracts(key, value) {
+    // 1. Ambil parameter dari URL browser saat ini secara utuh
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // 2. Set atau Hapus parameter yang di-klik
+    if (value) {
+      urlParams.set(key, value);
+    } else {
+      urlParams.delete(key);
+    }
+    
+    // 3. Susun URL baru dengan kombinasi parameter yang lengkap
+    const newUrl = "{% url 'todo_app:contract_list' %}" + (urlParams.toString() ? "?" + urlParams.toString() : "");
+    
+    // 4. Perbarui URL di address bar browser tanpa melakukan reload halaman penuh
+    window.history.pushState({}, '', newUrl);
+
+    // 5. Jalankan request HTMX secara manual membawa kedua parameter sekaligus
+    htmx.ajax('GET', newUrl, {
+      target: '#contract-table-container',
+      swap: 'outerHTML',
+      indicator: '#spinner'
+    });
+  }
+</script>
+{% endblock content %}

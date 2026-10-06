@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta 
+        name="keyword" 
+        content="
+            Todo,
+            Todo list , 
+            Jobdesk Manager ,
+            organize ,
+            priority"
+        >
+    <meta name="description" , content="Best Todo Manager for manage all your task efciantly">
+    <meta name="author" , content="Gili">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}"> <!--Add CSRF token to the request header-->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.5/dist/htmx.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- for djangoautocomplete -->
+    {{ form.media }} 
+
+    <!-- <script src="https://code.jquery.com/jquery-4.0.0.min.js" integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script> -->
+    <!-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js">
+    </script>
+ -->
+    {% block title %}{% endblock title %}
+</head>
+<body class="pt-30 bg-base-200 min-h-screen">
+    {% include 'partial/navbar.html' %}
+
+    <main class="container mx-auto px-2 md:px-16 lg:px-32 xl:px-48 2xl:px-64"></main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="dialog-container"></div>
+
+    <!-- Wadah Toast/Notifikasi DaisyUI (Posisikan di kanan bawah layar) -->
+    <div id="toast-container" class="toast toast-end toast-bottom z-50"></div>
+
+    {% block extra_js %}{% endblock %}
+
+    <style>
+        
+
+    </style>
+    
+<script>
+    // Add CSRF token to all HTMX requests
+  document.body.addEventListener('htmx:configRequest', (event) => {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    event.detail.headers['X-CSRFToken'] = csrfToken;
+  });
+
+  // $("#id_client").select2();
+  // $('.modal .select2').select2({
+  //       dropdownParent: $('.modal')
+  //   });
+</script>
+
+<!-- <script>
+    $(document).ready(function() {
+    // 1. Initialize Select2
+    $('#id_client').select2();
+});
+</script> -->
+
+<script>
+
+
+</script>
+
+</body>
+</html>

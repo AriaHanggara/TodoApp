@@ -1,0 +1,80 @@
+<!-- contract/edit-form-fields.html -->
+<form id="edit-contract-form-{{ contract.id }}" 
+      hx-post="{% url 'todo_app:contract_edit' contract.id %}" 
+      hx-target="#edit-contract-modal" 
+      hx-swap="outerHTML"
+      class="space-y-4">
+      
+    {% csrf_token %}
+    
+    <!-- Input Client  -->
+    <fieldset class="form-control w-full">
+      <legend class="label">Klien</legend>
+      {{ form.client }}
+        {% if form.client.errors %}
+            <span class="text-error text-xs mt-1">{{ form.client.errors|first }}</span>
+        {% endif %}
+    </fieldset>
+
+    <!-- Kontak Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Total Pertemuan</span>
+        </label>
+        {{ form.total_pertemuan }}
+        {% if form.total_pertemuan.errors %}
+          <label class="label text-error">{{ form.total_pertemuan.errors }}</label>
+        {% endif %}
+    </div>
+
+    <!-- Kota Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Total Biaya</span>
+        </label>
+        {{ form.total_biaya }}
+        {% if form.total_biaya.errors %}
+          <label class="label text-error">{{ form.total_biaya.errors }}</label>
+        {% endif %}
+    </div>
+
+    <!-- Input Pembayaran  -->
+    <fieldset class="form-control w-full">
+      <legend class="label">Pembayaran</legend>
+      {{ form.pembayaran }}
+        {% if form.pembayaran.errors %}
+            <span class="text-error text-xs mt-1">{{ form.pembayaran.errors|first }}</span>
+        {% endif %}
+    </fieldset>
+
+    <!-- Input Contract Status  -->
+    <fieldset class="form-control w-full">
+      <legend class="label">Status</legend>
+      {{ form.contract_status }}
+        {% if form.contract_status.errors %}
+            <span class="text-error text-xs mt-1">{{ form.contract_status.errors|first }}</span>
+        {% endif %}
+    </fieldset>
+
+    <!-- Created Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Created</span>
+        </label>
+        <input class="input input-bordered w-full" type="text" disabled value="{{ contract.created_at }}">
+    </div>
+
+    <!-- Updated Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Updated</span>
+        </label>
+        <input class="input input-bordered w-full" type="text" disabled value="{{ contract.updated_at }}">
+    </div>
+
+    <!-- Tombol Aksi -->
+    <div class="modal-action">
+        <button type="button" class="btn" onclick="document.getElementById('edit-contract-modal').close()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+    </div>
+</form>

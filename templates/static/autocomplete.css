@@ -1,0 +1,30 @@
+/* Container sizing */
+.autocomplete-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    margin: 10px 0;
+}
+
+/* Styled text input box */
+.autocomplete-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 16px;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background-color: #ffffff;
+    color: #1e293b;
+}
+
+/* Input hover and focus styling states */
+.autocomplete-input:hover {
+    border-color: #94a3b8;
+}
+
+.autocomplete-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}

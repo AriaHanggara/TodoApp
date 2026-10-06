@@ -1,0 +1,19 @@
+<div class="overflow-x-auto mt-7 px-4 ">
+  <div class="rounded-2xl shadow-xl border border-base-300">
+    <table class="table table-zebra w-full">
+      <!-- Head -->
+      <thead class="bg-base-200 text-base-content">
+        <tr>
+          <th class="text-lg">Klien</th>
+          <th class="text-lg">Materi</th>
+          <th class="text-lg">Hari/Jam</th>
+          <th class="text-lg text-center">Aktif</th>
+          <th class="text-lg text-center">Actions</th>
+        </tr>
+      </thead> 
+      <tbody id="tbody" hx-swap="outerHTML">
+        {% include './table-rows.html' %}
+      </tbody>
+    </table>
+  </div>
+</div>

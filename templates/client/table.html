@@ -1,0 +1,16 @@
+<div class="overflow-x-auto">
+    <table class="table table-zebra w-full">
+      <!-- Head -->
+      <thead class="bg-base-200 text-base-content">
+        <tr>
+          <th></th>
+          <th class="text-lg">Nama</th>
+          <th class="text-lg">Kontak</th>
+          <th class="text-lg">Alamat</th>
+        </tr>
+      </thead> 
+      <tbody id="tbody" hx-swap="outerHTML">
+        {% include './table-rows.html' %}
+      </tbody>
+    </table>
+</div>

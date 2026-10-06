@@ -1,0 +1,139 @@
+<div id="contract-table-container" 
+     hx-trigger="contractListChanged from:body" 
+     hx-get="{% url 'todo_app:contract_list' %}?page={{ page_obj.number }}" 
+     hx-target="#contract-table-container" 
+     hx-swap="outerHTML"
+     class="w-full overflow-hidden">
+
+     <!-- Kelompok Filter: Status Pembayaran -->
+    <div class="flex flex-wrap justify-center gap-2 w-full items-center mb-4">
+      <span class="text-xs font-semibold text-gray-500 uppercase mr-2">PEMBAYARAN:</span>
+      
+      <!-- Button All -->
+      <button type="button"
+              hx-get="{% url 'todo_app:contract_list' %}?pembayaran={% if current_contract_status %}&contract_status={{ current_contract_status }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}"
+              hx-target="#contract-table-container"
+              hx-swap="outerHTML"
+              hx-push-url="true"
+              hx-indicator="#spinner"
+              class="btn btn-sm sm:btn-md {% if not current_pembayaran %}btn-neutral font-bold shadow-md text-white{% else %}btn-outline btn-neutral{% endif %}">
+        All
+      </button>
+
+      <!-- Button Lunas -->
+      <button type="button"
+              hx-get="{% url 'todo_app:contract_list' %}?pembayaran=Lunas{% if current_contract_status %}&contract_status={{ current_contract_status }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}"
+              hx-target="#contract-table-container"
+              hx-swap="outerHTML"
+              hx-push-url="true"
+              hx-indicator="#spinner"
+              class="btn btn-sm sm:btn-md {% if current_pembayaran == 'Lunas' %}btn-success font-bold shadow-md text-white{% else %}btn-outline btn-success{% endif %}">
+        Lunas
+      </button>
+
+      <!-- Button Kredit -->
+      <button type="button"
+              hx-get="{% url 'todo_app:contract_list' %}?pembayaran=Kredit{% if current_contract_status %}&contract_status={{ current_contract_status }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}"
+              hx-target="#contract-table-container"
+              hx-swap="outerHTML"
+              hx-push-url="true"
+              hx-indicator="#spinner"
+              class="btn btn-sm sm:btn-md {% if current_pembayaran == 'Kredit' %}btn-warning font-bold shadow-md text-white{% else %}btn-outline btn-warning{% endif %}">
+        Kredit
+      </button>
+    </div>
+
+    <!-- Kelompok Filter: Status Kontrak -->
+    <div class="flex flex-wrap justify-center gap-2 w-full items-center mb-8">
+      <span class="text-xs font-semibold text-gray-500 uppercase mr-2">STATUS:</span>
+      
+      <!-- Button All -->
+      <button type="button"
+              hx-get="{% url 'todo_app:contract_list' %}?contract_status={% if current_pembayaran %}&pembayaran={{ current_pembayaran }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}"
+              hx-target="#contract-table-container"
+              hx-swap="outerHTML"
+              hx-push-url="true"
+              hx-indicator="#spinner"
+              class="btn btn-sm sm:btn-md {% if not current_contract_status %}btn-neutral font-bold shadow-md text-white{% else %}btn-outline btn-neutral{% endif %}">
+        All
+      </button>
+
+      <!-- Button Berjalan -->
+      <button type="button"
+              hx-get="{% url 'todo_app:contract_list' %}?contract_status=Berjalan{% if current_pembayaran %}&pembayaran={{ current_pembayaran }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}"
+              hx-target="#contract-table-container"
+              hx-swap="outerHTML"
+              hx-push-url="true"
+              hx-indicator="#spinner"
+              class="btn btn-sm sm:btn-md {% if current_contract_status == 'Berjalan' %}btn-info font-bold shadow-md text-white{% else %}btn-outline btn-info{% endif %}">
+        Berjalan
+      </button>
+
+      <!-- Button Habis -->
+      <button type="button"
+              hx-get="{% url 'todo_app:contract_list' %}?contract_status=Habis{% if current_pembayaran %}&pembayaran={{ current_pembayaran }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}"
+              hx-target="#contract-table-container"
+              hx-swap="outerHTML"
+              hx-push-url="true"
+              hx-indicator="#spinner"
+              class="btn btn-sm sm:btn-md {% if current_contract_status == 'Habis' %}btn-error font-bold shadow-md text-white{% else %}btn-outline btn-error{% endif %}">
+        Habis
+      </button>
+    </div>
+     
+    <!-- Bagian Tabel -->
+    {% include './table.html' %}
+
+    <!-- Bagian Pagination DaisyUI Responsif -->
+    {% if is_paginated %}
+    <div class="flex justify-center w-full my-6 px-2 overflow-x-auto">
+        <div class="join flex-nowrap">
+            <!-- Tombol First & Previous -->
+            {% if page_obj.has_previous %}
+                <a hx-get="{% url 'todo_app:contract_list' %}?page=1"
+                   hx-target="#contract-table-container"
+                   hx-swap="outerHTML"
+                   class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3">« <span class="hidden sm:inline">First</span></a>
+                   
+                <a hx-get="{% url 'todo_app:contract_list' %}?page={{ page_obj.previous_page_number }}"
+                   hx-target="#contract-table-container"
+                   hx-swap="outerHTML"
+                   class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3">‹ <span class="hidden sm:inline">Prev</span></a>
+            {% else %}
+                <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled>« <span class="hidden sm:inline">First</span></button>
+                <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled>‹ <span class="hidden sm:inline">Prev</span></button>
+            {% endif %}
+
+            <!-- Numbers & Ellipsis Range -->
+            {% for num in custom_page_range %}
+                {% if page_obj.number == num %}
+                    <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-active btn-primary">{{ num }}</button>
+                {% elif num == paginator.ELLIPSIS %}
+                    <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled>{{ num }}</button>
+                {% else %}
+                    <a hx-get="{% url 'todo_app:contract_list' %}?page={{ num }}"
+                       hx-target="#contract-table-container"
+                       hx-swap="outerHTML"
+                       class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Tombol Next & Last -->
+            {% if page_obj.has_next %}
+                <a hx-get="{% url 'todo_app:contract_list' %}?page={{ page_obj.next_page_number }}"
+                   hx-target="#contract-table-container"
+                   hx-swap="outerHTML"
+                   class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3"><span class="hidden sm:inline">Next</span> ›</a>
+                   
+                <a hx-get="{% url 'todo_app:contract_list' %}?page={{ paginator.num_pages }}"
+                   hx-target="#contract-table-container"
+                   hx-swap="outerHTML"
+                   class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3"><span class="hidden sm:inline">Last</span> »</a>
+            {% else %}
+                <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled><span class="hidden sm:inline">Next</span> ›</button>
+                <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled><span class="hidden sm:inline">Last</span> »</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

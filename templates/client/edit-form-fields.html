@@ -1,0 +1,59 @@
+<!-- client/edit-form-fields.html -->
+<form id="edit-client-form-{{ client.id }}" 
+      hx-post="{% url 'todo_app:client_edit' client.id %}" 
+      hx-target="#edit-client-modal" 
+      hx-swap="outerHTML"
+      class="space-y-4">
+      
+    {% csrf_token %}
+    
+    <!-- Input Nama -->
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text font-semibold">Nama Client</span>
+        </label>
+        {{ form.nama }}
+        {% if form.nama.errors %}
+            <span class="text-error text-xs mt-1">{{ form.nama.errors|first }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Input Kontak -->
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text font-semibold">Kontak</span>
+        </label>
+        {{ form.kontak }}
+        {% if form.kontak.errors %}
+            <span class="text-error text-xs mt-1">{{ form.kontak.errors|first }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Input Kota -->
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text font-semibold">Kota</span>
+        </label>
+        {{ form.kota }}
+        {% if form.kota.errors %}
+            <span class="text-error text-xs mt-1">{{ form.kota.errors|first }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Input Alamat -->
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text font-semibold">Alamat</span>
+        </label>
+        {{ form.alamat }}
+        {% if form.alamat.errors %}
+            <span class="text-error text-xs mt-1">{{ form.alamat.errors|first }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Tombol Aksi -->
+    <div class="modal-action">
+        <button type="button" class="btn" onclick="document.getElementById('edit-client-modal').close()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+    </div>
+</form>

@@ -1,0 +1,60 @@
+<!-- client/form-fields.html -->
+<form id="add-client-form" 
+      hx-post="{% url 'todo_app:client_create' %}" 
+      hx-target="#add-client-form" 
+      hx-swap="outerHTML"
+      class="space-y-4">
+      
+    {% csrf_token %}
+    
+    <!-- Input Nama -->
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text font-semibold">Nama Client</span>
+        </label>
+        <!-- Tambahkan class DaisyUI ke widget django form di forms.py (input input-bordered) -->
+        {{ form.nama }}
+        {% if form.nama.errors %}
+            <span class="text-error text-xs mt-1">{{ form.nama.errors|first }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Kontak Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Kontak</span>
+        </label>
+        {{ form.kontak }}
+        {% if form.kontak.errors %}
+          <label class="label text-error">{{ form.kontak.errors }}</label>
+        {% endif %}
+    </div>
+
+    <!-- Kota Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Kota</span>
+        </label>
+        {{ form.kota }}
+        {% if form.kota.errors %}
+          <label class="label text-error">{{ form.kota.errors }}</label>
+        {% endif %}
+    </div>
+
+    <!-- Input Kontak/Alamat Lainnya -->
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text font-semibold">Alamat</span>
+        </label>
+        {{ form.alamat }}
+        {% if form.alamat.errors %}
+            <span class="text-error text-xs mt-1">{{ form.alamat.errors|first }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Tombol Aksi di bagian bawah Form -->
+    <div class="modal-action">
+        <button type="button" class="btn" onclick="document.getElementById('add-client-modal').close()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+    </div>
+</form>
