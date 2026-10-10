@@ -1,0 +1,51 @@
+<!-- contract/edit-form-fields.html -->
+<form id="edit-payment-form-{{ payment.id }}" 
+      hx-post="{% url 'todo_app:payment_edit' payment.id %}" 
+      hx-target="#edit-payment-modal" 
+      hx-swap="outerHTML"
+      class="space-y-4">
+      
+    {% csrf_token %}
+    
+    <!-- Input Contract  -->
+    <fieldset class="form-control w-full">
+      <legend class="label">Kontrak</legend>
+      {{ form.contract }}
+        {% if form.contract.errors %}
+            <span class="text-error text-xs mt-1">{{ form.contract.errors|first }}</span>
+        {% endif %}
+    </fieldset>
+
+    <!-- Tanggal & Jam Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Tanggal & Waktu</span>
+        </label>
+        
+        <!-- Pembungkus Grid untuk memisahkan date dan time picker secara berdampingan -->
+        <div class="grid grid-cols-2 gap-2">
+            {{ form.tanggal }}
+        </div>
+
+        {% if form.tanggal.errors %}
+          <label class="label text-error">{{ form.tanggal.errors }}</label>
+        {% endif %}
+    </div>
+
+    <!-- Total Field -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Total Biaya</span>
+        </label>
+        {{ form.total }}
+        {% if form.total.errors %}
+          <label class="label text-error">{{ form.total.errors }}</label>
+        {% endif %}
+    </div>
+
+    <!-- Tombol Aksi -->
+    <div class="modal-action">
+        <button type="button" class="btn" onclick="document.getElementById('edit-payment-modal').close()">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+    </div>
+</form>

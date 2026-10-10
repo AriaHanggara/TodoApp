@@ -1,9 +1,9 @@
 {% if payments %}
-  {% for payement in payments %}
-    {% include 'payement/table-row.html' %}
+  {% for payment in payments %}
+    {% include 'payment/table-row.html' %}
   {% endfor %}
 {% else %}
-  <tr id="no-payement-alert">
+  <tr id="no-payment-alert">
     <td colspan="100%">
       <div
         role="alert"

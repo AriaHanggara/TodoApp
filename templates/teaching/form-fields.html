@@ -1,0 +1,66 @@
+<form id="add-teach-form" 
+      hx-post="{% url 'todo_app:teaching_create' %}" 
+      hx-target="#add-teach-form" 
+      hx-swap="outerHTML"
+      class="space-y-4">
+  {% csrf_token %}
+
+  <!-- Client Field -->
+  <fieldset class="form-control w-full">
+    <legend class="label">Klien</legend>
+    {{ form.client }}
+      {% if form.client.errors %}
+          <span class="text-error text-xs mt-1">{{ form.client.errors|first }}</span>
+      {% endif %}
+  </fieldset>
+
+  <!-- Contract Field -->
+  <fieldset class="form-control w-full">
+    <legend class="label">Kontrak</legend>
+    {{ form.kontrak }}
+      {% if form.kontrak.errors %}
+          <span class="text-error text-xs mt-1">{{ form.kontrak.errors|first }}</span>
+      {% endif %}
+  </fieldset>
+
+  <!-- Description Field -->
+  <div class="form-control w-full">
+    <label class="label">
+      <span class="label-text">Hari</span>
+    </label>
+    {{ form.day_of_week }}
+    {% if form.day_of_week.errors %}
+      <label class="label text-error">{{ form.day_of_week.errors }}</label>
+    {% endif %}
+  </div>
+
+  <!-- Tanggal & Jam Field -->
+  <div class="form-control w-full">
+      <label class="label">
+        <span class="label-text">Waktu</span>
+      </label>
+      <div class="grid grid-cols-2 gap-2">
+          {{ form.start_time }}{{ form.end_time }}
+      </div>
+      {% if form.start_time.errors or form.end_time.errors %}
+        <label class="label text-error">{{ form.start_time.errors }}</label>
+      {% endif %}
+  </div>
+  
+  <div class="form-control w-full">
+    <label class="label">
+        <span class="label-text font-semibold">Materi</span>
+    </label>
+    {{ form.materi }}
+    {% if form.materi.errors %}
+        <span class="text-error text-xs mt-1">{{ form.materi.errors|first }}</span>
+    {% endif %}
+  </div>
+
+  <!-- Actions -->
+  <div class="modal-action">
+    <button type="button" class="btn" onclick="document.getElementById('add-teach-modal').close()">Cancel</button>
+    <button type="submit" class="btn btn-primary">Add Task</button>
+  </div>
+
+</form>

@@ -1,0 +1,45 @@
+<dialog id="record-teach-modal" class="modal modal-open">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-2">Catat Sesi Mengajar</h3>
+    <p class="text-sm mb-4">
+      Klien: <strong class="text-primary">{{ teaching.client.nama }}</strong><br>
+      Pertemuan ke: <strong>{{ teaching.total_mengajar|add:1 }} dari {{ teaching.kontrak.total_pertemuan }}</strong>
+    </p>
+
+    <form 
+      method="POST" 
+      hx-post="{% url 'todo_app:teaching_record' teaching.id %}" 
+      hx-target="#teaching-{{ teaching.id }}" 
+      hx-swap="outerHTML"
+      hx-on::after-request="if(event.detail.successful) { document.getElementById('record-teach-modal').remove(); }"
+    >
+      {% csrf_token %}
+      
+      <!-- Kirim nomor halaman saat ini secara tersembunyi -->
+      <input type="hidden" name="page" value="{{ page_obj.number }}">
+
+      <div class="form-control mb-3">
+        <label class="label font-semibold">Materi Realisasi</label>
+        <textarea 
+          name="materi_realisasi" 
+          class="textarea textarea-bordered w-full" 
+          rows="3" 
+          placeholder="Catatan materi yang diajarkan..."
+        >{{ teaching.materi }}</textarea>
+      </div>
+
+      <!-- Option untuk Jadwal Berubah / Pengganti -->
+      <div class="form-control mb-4">
+        <label class="label cursor-pointer justify-start gap-3">
+          <input type="checkbox" name="is_rescheduled" class="checkbox checkbox-primary" />
+          <span class="label-text">Tandai sebagai <strong>Jadwal Pengganti / Berubah</strong></span>
+        </label>
+      </div>
+
+      <div class="modal-action">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('record-teach-modal').remove()">Batal</button>
+        <button type="submit" class="btn btn-success text-white"">Simpan Record</button>
+      </div>
+    </form>
+  </div>
+</dialog>

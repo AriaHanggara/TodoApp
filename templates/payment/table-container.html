@@ -14,12 +14,12 @@
         <div class="join flex-nowrap">
             <!-- Tombol First & Previous -->
             {% if page_obj.has_previous %}
-                <a hx-get="{% url 'todo_app:contract_list' %}?page=1"
+                <a hx-get="{% url 'todo_app:payment_list' %}?page=1"
                    hx-target="#contract-table-container"
                    hx-swap="outerHTML"
                    class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3">« <span class="hidden sm:inline">First</span></a>
                    
-                <a hx-get="{% url 'todo_app:contract_list' %}?page={{ page_obj.previous_page_number }}"
+                <a hx-get="{% url 'todo_app:payment_list' %}?page={{ page_obj.previous_page_number }}"
                    hx-target="#contract-table-container"
                    hx-swap="outerHTML"
                    class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3">‹ <span class="hidden sm:inline">Prev</span></a>
@@ -35,7 +35,7 @@
                 {% elif num == paginator.ELLIPSIS %}
                     <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled>{{ num }}</button>
                 {% else %}
-                    <a hx-get="{% url 'todo_app:contract_list' %}?page={{ num }}"
+                    <a hx-get="{% url 'todo_app:payment_list' %}?page={{ num }}"
                        hx-target="#contract-table-container"
                        hx-swap="outerHTML"
                        class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3">{{ num }}</a>
@@ -44,12 +44,12 @@
 
             <!-- Tombol Next & Last -->
             {% if page_obj.has_next %}
-                <a hx-get="{% url 'todo_app:contract_list' %}?page={{ page_obj.next_page_number }}"
+                <a hx-get="{% url 'todo_app:payment_list' %}?page={{ page_obj.next_page_number }}"
                    hx-target="#contract-table-container"
                    hx-swap="outerHTML"
                    class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3"><span class="hidden sm:inline">Next</span> ›</a>
                    
-                <a hx-get="{% url 'todo_app:contract_list' %}?page={{ paginator.num_pages }}"
+                <a hx-get="{% url 'todo_app:payment_list' %}?page={{ paginator.num_pages }}"
                    hx-target="#contract-table-container"
                    hx-swap="outerHTML"
                    class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3"><span class="hidden sm:inline">Last</span> »</a>

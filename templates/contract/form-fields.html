@@ -17,7 +17,18 @@
         {% endif %}
     </fieldset>
 
-    <!-- Kontak Field -->
+    <!-- Input Tipe Kontrak -->
+    <div class="form-control w-full">
+        <label class="label">
+          <span class="label-text">Tipe Kontrak</span>
+        </label>
+        {{ form.tipe_kontrak }}
+        {% if form.tipe_kontrak.errors %}
+          <label class="label text-error">{{ form.tipe_kontrak.errors }}</label>
+        {% endif %}
+    </div>
+
+    <!-- Input Total Pertemuan -->
     <div class="form-control w-full">
         <label class="label">
           <span class="label-text">Total Pertemuan</span>
@@ -28,7 +39,7 @@
         {% endif %}
     </div>
 
-    <!-- Kota Field -->
+    <!-- Input Total Biaya -->
     <div class="form-control w-full">
         <label class="label">
           <span class="label-text">Total Biaya</span>
