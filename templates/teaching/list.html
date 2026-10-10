@@ -23,10 +23,10 @@
         type="search"
         name="search"
         class="grow"
-        placeholder="Search tasks..."
+        placeholder="Search schedule..."
         hx-get="{% url 'todo_app:search_teaching' %}"
         hx-trigger="keyup changed delay:500ms"
-        hx-target="#tbody"
+        hx-target="#teach-table-container"
         hx-sync="this:abort"
         hx-indicator="#spinner"
         hx-on::before-request="document.getElementById('tbody').style.opacity= 0.4;"
@@ -78,23 +78,23 @@
   </div>
 </div>
 
-<!-- Tasks Table -->
-<div
-  class="px-6"
-  hx-get="{% url 'todo_app:teaching_list' %}"
-  hx-trigger="load"
-  hx-target="#tbody"
-  hx-swap="innerHTML"
->
-  {% include './table.html' %}
-</div>
+<!-- Container Tabel & Pagination -->
+{% include 'teaching/table-container.html' %}
 
-<!-- Reopen Modal on HTMX Fail -->
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    document.body.addEventListener('fail', () => {
-      document.getElementById('add-todo-modal').showModal();
-    });
+  // KETIKA SUKSES: Tutup modal dan Reset Form
+  document.body.addEventListener('teachingListChanged', function() {
+      const addModal = document.getElementById('add-teach-modal');
+      if (addModal && typeof addModal.close === 'function') {
+          addModal.close(); 
+          $('#id_client').remove();
+          $('#id_kontrak').remove();
+      }
+
+      const form = document.getElementById('add-teach-form');
+      if (form) {
+          form.reset(); 
+      }
   });
 </script>
 

@@ -1,46 +1,8 @@
-<!--add-task-modal file-->
+<!--add-teach-modal file-->
 <dialog id="add-teach-modal" class="modal">
   <div class="modal-box">
     <h3 class="font-bold text-lg mb-4">Add New Teach</h3>
 
-    <form 
-        class="mb-4"
-        hx-post="{% url 'todo_app:create-teach' %}"
-        hx-target="#tbody"
-        hx-swap="afterbegin"
-        hx-on:success="document.getElementById('add-teach-modal').close(); this.reset();"
-        hx-on::after-request="document.getElementById('no-tasks-alert')?.remove()"
-    >
-      {% csrf_token %}
-
-      <!-- Title Field -->
-      <div class="form-control w-full">
-        <label class="label">
-          <span class="label-text">Title</span>
-        </label>
-        {{ form.title }}
-        {% if form.title.errors %}
-          <label class="label text-error">{{ form.title.errors }}</label>
-        {% endif %}
-      </div>
-
-      <!-- Description Field -->
-      <div class="form-control w-full">
-        <label class="label">
-          <span class="label-text">Description</span>
-        </label>
-        {{ form.description }}
-        {% if form.description.errors %}
-          <label class="label text-error">{{ form.description.errors }}</label>
-        {% endif %}
-      </div>
-
-      <!-- Actions -->
-      <div class="modal-action">
-        <button type="button" class="btn" onclick="document.getElementById('add-todo-modal').close()">Cancel</button>
-        <button type="submit" class="btn btn-primary">Add Task</button>
-      </div>
-
-    </form>
+    {% include 'teaching/form-fields.html' %}
   </div>
 </dialog>

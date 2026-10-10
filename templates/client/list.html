@@ -91,31 +91,5 @@
             form.reset(); 
         }
     });
-
-    // NOTIFIKASI TOAST
-    document.body.addEventListener('showToast', function(evt) {
-        const message = evt.detail.message;
-        const alertType = evt.detail.type;
-        
-        const toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) return;
-
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert ${alertType} shadow-lg transition-all duration-300 transform translate-y-2 opacity-0`;
-        alertDiv.innerHTML = `<div><span>${message}</span></div>`;
-
-        toastContainer.appendChild(alertDiv);
-
-        setTimeout(() => {
-            alertDiv.classList.remove('opacity-0', 'translate-y-2');
-        }, 10);
-
-        setTimeout(() => {
-            alertDiv.classList.add('opacity-0', 'translate-y-2');
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 300);
-        }, 3000);
-    });
 </script>
 {% endblock content %}

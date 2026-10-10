@@ -1,0 +1,93 @@
+{% extends '.././base.html' %}
+
+{% block title %}
+<title>Teaching Record List</title>
+{% endblock title %}
+
+{% block content %}
+
+<!-- Search + Filters + Add Button -->
+<div class="flex flex-col gap-6 mb-10 px-6 max-w-2xl mx-auto items-center">
+  <!-- Search + Add New Task -->
+  <div class="flex flex-col md:flex-row gap-4 justify-center items-center w-full">
+    <!-- Search Bar -->
+    <label class="input input-bordered flex items-center gap-2 w-full md:max-w-md">
+      <svg class="h-5 w-5 opacity-60" xmlns="http://www.w3.org/2000/svg" fill="none"
+           viewBox="0 0 24 24" stroke="currentColor">
+        <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </g>
+      </svg>
+      <input
+        type="search"
+        name="search"
+        class="grow"
+        placeholder="Search schedule..."
+        hx-get="{% url 'todo_app:search_teaching' %}"
+        hx-trigger="keyup changed delay:500ms"
+        hx-target="#teach-table-container"
+        hx-sync="this:abort"
+        hx-indicator="#spinner"
+        hx-on::before-request="document.getElementById('tbody').style.opacity= 0.4;"
+        hx-on::after-request="document.getElementById('tbody').style.opacity= 1.0;"
+      />
+      {% include 'partial/loading-bar.html' %}
+    </label>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex gap-4">
+    <a
+      hx-get="{% url 'todo_app:teaching_list' %}"
+      hx-target="#tbody"
+      hx-swap="innerHTML"
+      hx-indicator="#spinner"
+      hx-on::before-request="document.getElementById('tbody').style.opacity= 0.4;"
+      hx-on::after-request="document.getElementById('tbody').style.opacity= 1.0;"
+      class="btn btn-outline btn-primary"
+    >All</a>
+
+    <a
+      hx-get="{% url 'todo_app:teaching_list' %}?filter=uncompleted"
+      hx-target="#tbody"
+      hx-swap="innerHTML"
+      hx-indicator="#spinner"
+      hx-on::before-request="document.getElementById('tbody').style.opacity= 0.4;"
+      hx-on::after-request="document.getElementById('tbody').style.opacity= 1.0;"
+      class="btn btn-outline btn-warning"
+    >Uncompleted</a>
+
+    <a
+      hx-get="{% url 'todo_app:teaching_list' %}?filter=completed"
+      hx-target="#tbody"
+      hx-swap="innerHTML"
+      hx-indicator="#spinner"
+      hx-on::before-request="document.getElementById('tbody').style.opacity= 0.4;"
+      hx-on::after-request="document.getElementById('tbody').style.opacity= 1.0;"
+      class="btn btn-outline btn-success"
+    >Completed</a>
+  </div>
+</div>
+
+<!-- Container Tabel & Pagination -->
+{% include 'teaching/table-container.html' %}
+
+<script>
+  // KETIKA SUKSES: Tutup modal dan Reset Form
+  document.body.addEventListener('teachingListChanged', function() {
+      const addModal = document.getElementById('add-teach-modal');
+      if (addModal && typeof addModal.close === 'function') {
+          addModal.close(); 
+          $('#id_client').remove();
+          $('#id_kontrak').remove();
+      }
+
+      const form = document.getElementById('add-teach-form');
+      if (form) {
+          form.reset(); 
+      }
+  });
+</script>
+
+{% endblock content %}

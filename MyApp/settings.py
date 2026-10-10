@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
 
     'django_cleanup.apps.CleanupConfig',
     'todo_app',
@@ -161,4 +162,7 @@ SESSION_COOKIE_AGE = 3600
 # Automatically extends the 5-minute countdown on every page load/request
 SESSION_SAVE_EVERY_REQUEST = True  
 
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = "."
+NUMBER_GROUPING = 3
 

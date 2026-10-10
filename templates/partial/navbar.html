@@ -16,11 +16,19 @@
 
         {% if user.is_authenticated %}
          {% if user.is_staff %}
-        <li><a href="{% url 'todo_app:client_list' %}">Client</a></li>
+        <li><a href="{% url 'todo_app:client_list' %}">Klien</a></li>
          {% endif %}
-        <li><a href="#">Jadwal</a></li>
+        <li>
+          <details>
+            <summary>Jadwal</summary>
+            <ul class="p-2 bg-base-100 rounded-box shadow">
+              <li><a href="{% url 'todo_app:teaching_list' %}">Mengajar</a></li>
+              <li><a href="#" target="_blank">History</a></li>
+            </ul>
+          </details>
+        </li>
         <li><a href="{% url 'todo_app:contract_list' %}">Kontrak</a></li>
-        <li><a href="#">Pembayaran</a></li>
+        <li><a href="{% url 'todo_app:payment_list' %}">Pembayaran</a></li>
         {% endif %}
 
         <!-- <li>
@@ -66,11 +74,19 @@
 
       {% if user.is_authenticated %}
        {% if user.is_staff %}
-      <li><a href="{% url 'todo_app:client_list' %}">Client</a></li>
+      <li><a href="{% url 'todo_app:client_list' %}">Klien</a></li>
        {% endif %}
-      <li><a href="#">Jadwal</a></li>
+      <li>
+          <details>
+            <summary>Jadwal</summary>
+            <ul class="p-2 bg-base-100 rounded-box shadow">
+              <li><a href="{% url 'todo_app:teaching_list' %}">Mengajar</a></li>
+              <li><a href="#" target="_blank">History</a></li>
+            </ul>
+          </details>
+        </li>
       <li><a href="{% url 'todo_app:contract_list' %}">Kontrak</a></li>
-      <li><a href="#">Pembayaran</a></li>
+      <li><a href="{% url 'todo_app:payment_list' %}">Pembayaran</a></li>
       {% endif %}
 
       <!-- <li>

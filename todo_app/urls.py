@@ -32,9 +32,11 @@ urlpatterns = [
 
 
 	path('', views.ListTeachingView.as_view(), name='teaching_list'),
-	path('create-teach/', views.CreateTeachView.as_view(), name='create-teach'),
-	path('check-status-teach/<int:pk>/', views.UpdateTeachingStatusView.as_view(), name='check_teach_status'),
-	path('search-teach/', views.SearchTeachingView.as_view(), name='search_teaching'),
+	path('create-teaching/', views.CreateTeachingView.as_view(), name='teaching_create'),
+	path("delete-teaching/<int:pk>/", views.DeleteTeachingView.as_view(), name='teaching_delete'),
+	path('edit-teaching/<int:pk>/', views.EditTeachingView.as_view(), name='teaching_edit'),
+	path('search-teaching/', views.SearchTeachingView.as_view(), name='search_teaching'),
+	path('record-teaching/<int:pk>/', views.RecordTeachingView.as_view(), name='teaching_record'),
 ]
 
 

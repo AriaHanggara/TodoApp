@@ -1,0 +1,11 @@
+<!-- edit-modal.html -->
+<dialog id="edit-teach-modal" 
+        class="modal" 
+        open
+        hx-on:teaching-list-changed="this.close()">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Edit Jadwal</h3>
+
+    {% include 'teaching/edit-form-fields.html' %}
+  </div>
+</dialog>

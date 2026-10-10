@@ -16,31 +16,31 @@ class ClientForm(forms.ModelForm):
 		]
 
 		widgets = {
-					"nama": forms.TextInput(
-						attrs={
-							"class": "input input-bordered w-full",
-							"placeholder": "Nama client",
-						}
-					),
-					"kontak": forms.TextInput(
-						attrs={
-							"class": "input input-bordered w-full",
-							"placeholder": "Nomor telepon / WhatsApp",
-						}
-					),
-                    "kota": forms.TextInput(
-                        attrs={
-                            "class": "input input-bordered w-full",
-                            "placeholder": "Kota",
-                        }
-                    ),
-				    "alamat": forms.Textarea(
-    					attrs={
-        					"class": "textarea textarea-bordered w-full",
-        					"rows": 3,
-        					"placeholder": "Alamat client",
-    				    }
-			         ),
+            "nama": forms.TextInput(
+                attrs={
+                    "class": "input input-bordered w-full",
+                    "placeholder": "Nama client",
+                }
+            ),
+            "kontak": forms.TextInput(
+                attrs={
+                    "class": "input input-bordered w-full",
+                    "placeholder": "Nomor telepon / WhatsApp",
+                }
+            ),
+            "kota": forms.TextInput(
+                attrs={
+                    "class": "input input-bordered w-full",
+                    "placeholder": "Kota",
+                }
+            ),
+            "alamat": forms.Textarea(
+                attrs={
+                    "class": "textarea textarea-bordered w-full",
+                    "rows": 3,
+                    "placeholder": "Alamat client",
+                }
+            ),
 		}
 	# def clean_nama(self):
 	# 	pass 
@@ -65,11 +65,17 @@ class ContractForm(forms.ModelForm):
 
         fields = [
             'client',
+            'tipe_kontrak',
             "total_pertemuan",
             "total_biaya",
         ]
 
         widgets = {
+            "tipe_kontrak": forms.Select(
+                attrs={
+                    "class": "select select-bordered w-full",
+                }
+            ),
             "total_pertemuan": forms.NumberInput(
                 attrs={
                     "class": "input input-bordered w-full",
@@ -98,43 +104,11 @@ class ContractForm(forms.ModelForm):
         }
 
 
-class ContractUpdateForm(forms.ModelForm):
-    client = forms.ModelChoiceField(
-        queryset=Client.objects.all(),
-        widget=autocomplete.ModelSelect2(
-            url='todo_app:autocomplete_client',
-            attrs={
-                'data-dropdown-parent': '#edit-contract-modal',
-                'class': 'input input-bordered w-full'
-            }
-        )
-    )
-
-    class Meta:
-        model = Contract
-
-        fields = [
-            'client',
-            "total_pertemuan",
-            "total_biaya",
-            "pembayaran",
-            "contract_status",
-        ]
-
+class ContractUpdateForm(ContractForm):
+    class Meta(ContractForm.Meta):
+        fields = ContractForm.Meta.fields + ["pembayaran", "contract_status"]
         widgets = {
-            "total_pertemuan": forms.NumberInput(
-                attrs={
-                    "class": "input input-bordered w-full",
-                    "min": 0,
-                    # "required": 'true',
-                }
-            ),
-            "total_biaya": forms.NumberInput(
-                attrs={
-                    "class": "input input-bordered w-full",
-                    "min": 0,
-                }
-            ),
+            **ContractForm.Meta.widgets,
             "pembayaran": forms.Select(
                 attrs={
                     "class": "select select-primary",
@@ -148,6 +122,11 @@ class ContractUpdateForm(forms.ModelForm):
                 }
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'client' in self.fields:
+            self.fields['client'].widget.attrs['data-dropdown-parent'] = '#edit-contract-modal'
 
 
 class PaymentForm(forms.ModelForm):
@@ -162,20 +141,33 @@ class PaymentForm(forms.ModelForm):
         )
     )
 
+    # tanggal = forms.DateTimeField(widget=forms.SplitDateTimeWidget(attrs={'attrs': 'attrs'}))
+    # Definisikan field tanggal secara eksplisit dengan SplitDateTimeField dan SplitDateTimeWidget
+    tanggal = forms.SplitDateTimeField(
+        widget=forms.SplitDateTimeWidget(
+            date_format='%Y-%m-%d',
+            time_format='%H:%M',
+            date_attrs={
+                'type': 'date',
+                'class': 'input input-bordered w-full datepicker',
+            },
+            time_attrs={
+                'type': 'time',
+                'class': 'input input-bordered w-full timepicker',
+            },
+        )
+    )
+
     class Meta:
         model = Payment
 
         fields = [
-            "contract"
+            "contract",
             "tanggal",
             "total",
         ]
 
         widgets = {
-            "tanggal": forms.SplitDateTimeField(
-                date_attrs={'type': 'date'},
-                time_attrs={'type': 'time'}
-            )
             "total": forms.NumberInput(
                 attrs={
                     "class": "input input-bordered w-full",
@@ -186,26 +178,59 @@ class PaymentForm(forms.ModelForm):
         }
 
 
-class TeachingForm(forms.ModelForm):
+class PaymentUpdateForm(PaymentForm):
+    def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            if 'contract' in self.fields:
+                self.fields['contract'].widget.attrs['data-dropdown-parent'] = '#edit-payment-modal'
 
+
+class TeachingForm(forms.ModelForm):
+    client = forms.ModelChoiceField(
+            queryset=Client.objects.all(),
+            widget=autocomplete.ModelSelect2(
+                url='todo_app:autocomplete_client',
+                attrs={
+                    'data-dropdown-parent': '#add-teach-modal',
+                    'class': 'input input-bordered w-full'
+                }
+            )
+        )
+
+    kontrak = forms.ModelChoiceField(
+            queryset=Contract.objects.all(),
+            widget=autocomplete.ModelSelect2(
+                url='todo_app:autocomplete_contract',
+                attrs={
+                    'data-dropdown-parent': '#add-teach-modal',
+                    'class': 'input input-bordered w-full'
+                }
+            )
+        )
+    
     class Meta:
         model = Teaching
 
         fields = [
+            "client",
+            "kontrak",
             "day_of_week",
             "start_time",
             "end_time",
             "materi",
-            "status_teaching",
         ]
 
         widgets = {
-            "day_of_week": forms.HiddenInput(),
-
+            "day_of_week": forms.Select(
+                attrs={
+                    "class": "input input-bordered w-full"
+                }
+            ),
             "start_time": forms.TimeInput(
                 format="%H:%M",
                 attrs={
                     "type": "time",
+                    "placeholder": "Waktu mulai",
                     "class": "input input-bordered w-full",
                 },
             ),
@@ -225,25 +250,43 @@ class TeachingForm(forms.ModelForm):
                     "placeholder": "Materi teaching...",
                 },
             ),
+        }
 
+    # def clean(self):
+    #     cleaned_data = super().clean()
+
+    #     start_time = cleaned_data.get("start_time")
+    #     end_time = cleaned_data.get("end_time")
+
+    #     if start_time and end_time:
+    #         if start_time >= end_time:
+    #             self.add_error(
+    #                 "end_time",
+    #                 "Jam selesai harus lebih besar dari jam mulai.",
+    #             )
+
+    #     return cleaned_data
+
+
+class TeachingUpdateForm(TeachingForm):
+    class Meta(TeachingForm.Meta):  # 1. Warisi Meta milik TeachingForm
+        # 2. Tambahkan 'status_teaching' ke daftar fields milik parent
+        fields = TeachingForm.Meta.fields + ["status_teaching"]
+
+        # 3. Gabungkan widget dari parent dengan widget baru untuk status_teaching
+        widgets = {
+            **TeachingForm.Meta.widgets,
             "status_teaching": forms.CheckboxInput(
                 attrs={
                     "class": "toggle toggle-primary",
-                },
+                }
             ),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-
-        start_time = cleaned_data.get("start_time")
-        end_time = cleaned_data.get("end_time")
-
-        if start_time and end_time:
-            if start_time >= end_time:
-                self.add_error(
-                    "end_time",
-                    "Jam selesai harus lebih besar dari jam mulai.",
-                )
-
-        return cleaned_data
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 4. (Opsional) Jika ID modal edit berbeda dari modal add (#edit-teach-modal)
+        if 'client' in self.fields:
+            self.fields['client'].widget.attrs['data-dropdown-parent'] = '#edit-teach-modal'
+        if 'kontrak' in self.fields:
+            self.fields['kontrak'].widget.attrs['data-dropdown-parent'] = '#edit-teach-modal'
