@@ -71,11 +71,11 @@
 </div>
 
 <!-- Container Tabel & Pagination -->
-{% include 'teaching/table-container.html' %}
+{% include 'teaching/record-table-container.html' %}
 
 <script>
   // KETIKA SUKSES: Tutup modal dan Reset Form
-  document.body.addEventListener('teachingListChanged', function() {
+  document.body.addEventListener('RecordTeachingListChanged', function() {
       const addModal = document.getElementById('add-teach-modal');
       if (addModal && typeof addModal.close === 'function') {
           addModal.close(); 

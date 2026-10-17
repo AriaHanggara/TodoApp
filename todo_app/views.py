@@ -22,7 +22,7 @@ from .forms import (
     )
 import json
 from dal import autocomplete
-
+from django.utils import timezone
 
 
 ######## Url for autocomplete ########
@@ -47,9 +47,17 @@ class ContractFormAutocomplete(autocomplete.Select2QuerySetView):
             return Contract.objects.none()
 
         qs = Contract.objects.all()
+        client_id = self.forwarded.get('client', None)
+        if client_id:
+            qs = qs.filter(client_id=client_id)
 
         if self.q:
-            qs = qs.filter(Q(contract__client__nama__icontains=self.q) | Q(contract__client__alamat__icontains=self.q) | Q(contract__client__kontak=self.q))
+            qs = qs.filter(
+                Q(client__nama__icontains=self.q) | 
+                Q(client__alamat__icontains=self.q) | 
+                Q(client__kontak=self.q) |
+                Q(kode_kontrak__icontains=self.q)
+            )
 
         return qs
 ######## End Url ########
@@ -94,7 +102,7 @@ class ListClientView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         """Inject client creation form into the context."""
         context = super().get_context_data(**kwargs)
-        context["form"] = ClientForm
+        context["form"] = ClientForm()
 
         page_obj = context['page_obj']
         context['custom_page_range'] = page_obj.paginator.get_elided_page_range(
@@ -610,7 +618,7 @@ class ListTeachingView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         """Inject task creation form into the context."""
         context = super().get_context_data(**kwargs)
-        context["form"] = TeachingForm
+        context["form"] = TeachingForm()
         page_obj = context['page_obj']
         context['custom_page_range'] = page_obj.paginator.get_elided_page_range(
             page_obj.number,
@@ -633,8 +641,9 @@ class CreateTeachingView(LoginRequiredMixin, CreateView):
         # teaching.save()
         form.save()
 
-        fresh_form = TeachingForm()
-        response = render(self.request, "teaching/form-fields.html", {"form": fresh_form})
+        # Modal dimuat dinamis ke #dialog-container dan form menarget #add-teach-modal
+        # (outerHTML). Response kosong = modal dihapus dari DOM.
+        response = HttpResponse("")
 
         payload = {
             "teachingListChanged": {},
@@ -678,6 +687,7 @@ class DeleteTeachingView(LoginRequiredMixin, DeleteView):
 class EditTeachingView(LoginRequiredMixin, UpdateView):
     model = Teaching
     context_object_name = "teaching"
+    # form_class = TeachingForm1
     form_class = TeachingUpdateForm
     pk_url_kwarg = "pk"
     template_name = "teaching/edit-modal.html"
@@ -689,13 +699,18 @@ class EditTeachingView(LoginRequiredMixin, UpdateView):
         # teaching = form.save(commit=False)
         # teaching.save()
         form.save()
-
+        
         # Kirim HTMX Trigger JSON untuk merefresh daftar & menampilkan toast sukses
         response = HttpResponse("")
+
+        # fresh_form = TeachingForm()
+        # response = render(self.request, "teaching/form-fields.html", {"form": fresh_form})
+
         payload = {
             "teachingListChanged": {},
             "showToast": {"message": "Jadwal berhasil diperbarui!", "type": "alert-success"}
         }
+        #response["HX-Refresh"] = "true"
         response["HX-Trigger"] = json.dumps(payload)
         return response
 
@@ -791,38 +806,34 @@ class SearchTeachingView(LoginRequiredMixin, ListView):
 
 ## Class buat fungsi post yg di modal jadwal
 class RecordTeachingView(LoginRequiredMixin, View):
-    """View untuk mencatat sesi mengajar dengan menyertakan context pagination dan forloop lengkap."""
     paginate_by = 20
 
     def get_context_data(self, teaching, request, **kwargs):
-        """Membangun context pagination, posisi index (forloop.counter0), dan page range."""
-        # Ambil nomor halaman dari parameter GET atau POST (fallback ke halaman 1)
         page_number = request.GET.get("page") or request.POST.get("page") or 1
         
-        # Ambil queryset seluruh jadwal
         queryset = Teaching.objects.all()
         paginator = Paginator(queryset, self.paginate_by)
         page_obj = paginator.get_page(page_number)
         
-        # Cari index posisi teaching pada halaman aktif saat ini untuk forloop.counter0
         object_list = list(page_obj.object_list)
-        if teaching in object_list:
-            counter0 = object_list.index(teaching)
-        else:
-            counter0 = 0
+        counter0 = object_list.index(teaching) if teaching in object_list else 0
 
-        # Buat custom_page_range agar konsisten dengan view lainnya
         custom_page_range = paginator.get_elided_page_range(
             page_obj.number,
             on_each_side=2,
             on_ends=1
         )
 
+        # Format waktu lokal sekarang untuk default datetime-local input (YYYY-MM-DDTHH:MM)
+        now_iso = timezone.localtime(timezone.now()).strftime('%Y-%m-%dT%H:%M')
+
         context = {
             "teaching": teaching,
             "page_obj": page_obj,
-            "forloop": {"counter0": counter0},  # Mensimulasikan forloop untuk table-row.html
+            "forloop": {"counter0": counter0},
             "custom_page_range": custom_page_range,
+            "now_iso": now_iso,
+
         }
         context.update(kwargs)
         return context
@@ -843,6 +854,15 @@ class RecordTeachingView(LoginRequiredMixin, View):
         else:
             materi = request.POST.get("materi_realisasi", teaching.materi)
             is_rescheduled = request.POST.get("is_rescheduled") == "on"
+            
+            # Ambil input tanggal pelaksanaan dari form (jika kosong, gunakan waktu sekarang)
+            input_tanggal = request.POST.get("tanggal_pelaksanaan")
+            if input_tanggal:
+                # Konversi string datetime-local HTML ke datetime object yang sadar zona waktu (timezone-aware)
+                naive_dt = timezone.datetime.fromisoformat(input_tanggal)
+                tanggal_pelaksanaan = timezone.make_aware(naive_dt, timezone.get_current_timezone())
+            else:
+                tanggal_pelaksanaan = timezone.now()
 
             if kontrak.tipe_kontrak == "Privat":
                 if kontrak.total_pertemuan and kontrak.total_mengajar >= kontrak.total_pertemuan:
@@ -853,6 +873,7 @@ class RecordTeachingView(LoginRequiredMixin, View):
                     TeachingRecord.objects.create(
                         kontrak=kontrak,
                         teaching=teaching,
+                        tanggal_pelaksanaan=tanggal_pelaksanaan,  # Simpan tanggal pilihan user
                         materi_realisasi=materi,
                         is_rescheduled=is_rescheduled
                     )
@@ -866,6 +887,7 @@ class RecordTeachingView(LoginRequiredMixin, View):
                 TeachingRecord.objects.create(
                     kontrak=kontrak,
                     teaching=teaching,
+                    tanggal_pelaksanaan=tanggal_pelaksanaan,  # Simpan tanggal pilihan user
                     materi_realisasi=materi,
                     is_rescheduled=is_rescheduled
                 )
@@ -878,32 +900,36 @@ class RecordTeachingView(LoginRequiredMixin, View):
                     "showToast": {"message": "Tipe kontrak tidak dikenali.", "type": "alert-error"}
                 }
 
-        # PENTING: Pada method POST, kembalikan context lengkap agar table-row.html menerima page_obj dan forloop
-        context = self.get_context_data(teaching=teaching, request=request)
-        response = render(request, "teaching/table-row.html", context)
+        # context = self.get_context_data(teaching=teaching, request=request)
+        # # context['form'] = TeachingForm()
+        # response = render(self.request, "teaching/form-fields.html", context)
+        # context = self.get_context_data(teaching=teaching, request=request)
+        # response = render(request, "teaching/table-row.html", context)
+        # response["HX-Trigger"] = json.dumps(payload)
+        # return response
+        response = HttpResponse("")
         response["HX-Trigger"] = json.dumps(payload)
         return response
 
 
 class ListTeachingRecordView(LoginRequiredMixin, ListView):
-    model = Teaching
-    context_object_name = "teachings"
-    template_name = "teaching/list.html"
+    model = TeachingRecord
+    context_object_name = "teaching_records"
+    template_name = "teaching/record-list.html"
     paginate_by = 20
 
     def render_to_response(self, context, **response_kwargs):
         """Return partial template if HTMX request, otherwise return full page."""
         if self.request.headers.get("HX-Request") == "true":
-            return render(self.request, "teaching/table-container.html", context)
+            return render(self.request, "teaching/record-table-container.html", context)
         return super().render_to_response(context, **response_kwargs)
 
     def get_queryset(self):
-        return Teaching.objects.all()
+        return TeachingRecord.objects.all()
 
     def get_context_data(self, **kwargs):
         """Inject task creation form into the context."""
         context = super().get_context_data(**kwargs)
-        context["form"] = TeachingForm
         page_obj = context['page_obj']
         context['custom_page_range'] = page_obj.paginator.get_elided_page_range(
             page_obj.number,
@@ -911,5 +937,29 @@ class ListTeachingRecordView(LoginRequiredMixin, ListView):
             on_ends=1
         )
         return context
+
+
+class DeleteTeachingRecordView(LoginRequiredMixin, DeleteView):
+    """Menghapus record mengajar yang salah input dan mengembalikan kuota/progres kontrak."""
+    model = TeachingRecord
+    success_url = reverse_lazy("todo_app:teaching_record_list")
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        teaching_obj = self.object.teaching # Simpan referensi teaching untuk refresh baris jika diperlukan
+        
+        # Eksekusi delete (method delete() model di atas akan otomatis mereset status kontrak)
+        self.object.delete()
+
+        if request.headers.get("HX-Request") == "true":
+            response = HttpResponse("")
+            payload = {
+                "RecordTeachingListChanged": {}, # Trigger untuk merefresh list/tabel jadwal utama jika perlu
+                "showToast": {"message": "Sesi mengajar yang salah berhasil dihapus!", "type": "alert-warning"}
+            }
+            response["HX-Trigger"] = json.dumps(payload)
+            return response
+
+        return super().delete(request, *args, **kwargs)
 
 ######## End Teaching ########

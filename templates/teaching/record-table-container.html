@@ -1,0 +1,63 @@
+<div id="record-teach-table-container" 
+     hx-trigger="RecordTeachingListChanged from:body" 
+     hx-get="{% url 'todo_app:teaching_record_list' %}?page={{ page_obj.number }}" 
+     hx-target="#record-teach-table-container" 
+     hx-swap="outerHTML"
+     class="w-full overflow-hidden">
+     
+    <!-- Bagian Tabel -->
+    {% include './record-table.html' %}
+
+    <!-- Bagian Pagination DaisyUI Responsif -->
+    {% if is_paginated %}
+    <div class="flex justify-center w-full my-6 px-2 overflow-x-auto">
+        <div class="join flex-nowrap">
+            <!-- Tombol First & Previous -->
+            {% if page_obj.has_previous %}
+                <a hx-get="{% url 'todo_app:teaching_record_list' %}?page=1"
+                   hx-target="#record-teach-table-container"
+                   hx-swap="outerHTML"
+                   class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3">« <span class="hidden sm:inline">First</span></a>
+                   
+                <a hx-get="{% url 'todo_app:teaching_record_list' %}?page={{ page_obj.previous_page_number }}"
+                   hx-target="#record-teach-table-container"
+                   hx-swap="outerHTML"
+                   class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3">‹ <span class="hidden sm:inline">Prev</span></a>
+            {% else %}
+                <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled>« <span class="hidden sm:inline">First</span></button>
+                <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled>‹ <span class="hidden sm:inline">Prev</span></button>
+            {% endif %}
+
+            <!-- Numbers & Ellipsis Range -->
+            {% for num in custom_page_range %}
+                {% if page_obj.number == num %}
+                    <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-active btn-primary">{{ num }}</button>
+                {% elif num == paginator.ELLIPSIS %}
+                    <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled>{{ num }}</button>
+                {% else %}
+                    <a hx-get="{% url 'todo_app:teaching_record_list' %}?page={{ num }}"
+                       hx-target="#record-teach-table-container"
+                       hx-swap="outerHTML"
+                       class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Tombol Next & Last -->
+            {% if page_obj.has_next %}
+                <a hx-get="{% url 'todo_app:teaching_record_list' %}?page={{ page_obj.next_page_number }}"
+                   hx-target="#record-teach-table-container"
+                   hx-swap="outerHTML"
+                   class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3"><span class="hidden sm:inline">Next</span> ›</a>
+                   
+                <a hx-get="{% url 'todo_app:teaching_record_list' %}?page={{ paginator.num_pages }}"
+                   hx-target="#record-teach-table-container"
+                   hx-swap="outerHTML"
+                   class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3"><span class="hidden sm:inline">Last</span> »</a>
+            {% else %}
+                <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled><span class="hidden sm:inline">Next</span> ›</button>
+                <button class="join-item btn btn-xs sm:btn-sm px-2 sm:px-3 btn-disabled" disabled><span class="hidden sm:inline">Last</span> »</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

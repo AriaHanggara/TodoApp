@@ -1,9 +1,9 @@
-<dialog id="record-teach-modal" class="modal modal-open">
+<dialog id="record-teach-modal" class="modal" data-auto-show>
   <div class="modal-box">
     <h3 class="font-bold text-lg mb-2">Catat Sesi Mengajar</h3>
     <p class="text-sm mb-4">
       Klien: <strong class="text-primary">{{ teaching.client.nama }}</strong><br>
-      Pertemuan ke: <strong>{{ teaching.total_mengajar|add:1 }} dari {{ teaching.kontrak.total_pertemuan }}</strong>
+      Pertemuan ke: <strong>{{ teaching.total_mengajar|add:1 }} dari {% if teaching.kontrak.tipe_kontrak == 'Privat' %}{{ teaching.kontrak.total_pertemuan }}{% else %}∞ (Institusi){% endif %}</strong>
     </p>
 
     <form 
@@ -11,12 +11,27 @@
       hx-post="{% url 'todo_app:teaching_record' teaching.id %}" 
       hx-target="#teaching-{{ teaching.id }}" 
       hx-swap="outerHTML"
-      hx-on::after-request="if(event.detail.successful) { document.getElementById('record-teach-modal').remove(); }"
+      hx-refresh="true"
+      hx-on::after-request="if(event.detail.successful) { document.getElementById('record-teach-modal').remove(); 
+    document.getElementById('add-teach-form').reset();}"
     >
       {% csrf_token %}
-      
-      <!-- Kirim nomor halaman saat ini secara tersembunyi -->
       <input type="hidden" name="page" value="{{ page_obj.number }}">
+
+      <!-- Datetime Picker (Default otomatis waktu sekarang, bisa diedit jika lupa) -->
+      <div class="form-control mb-3">
+        <label class="label font-semibold">Tanggal & Waktu Pelaksanaan</label>
+        <input 
+          type="datetime-local" 
+          name="tanggal_pelaksanaan" 
+          value="{{ now_iso }}" 
+          class="input input-bordered w-full" 
+          required
+        >
+        <label class="label">
+          <span class="label-text-alt text-neutral-500">Sesuaikan jika sesi dilakukan di hari/waktu berbeda.</span>
+        </label>
+      </div>
 
       <div class="form-control mb-3">
         <label class="label font-semibold">Materi Realisasi</label>
@@ -28,7 +43,6 @@
         >{{ teaching.materi }}</textarea>
       </div>
 
-      <!-- Option untuk Jadwal Berubah / Pengganti -->
       <div class="form-control mb-4">
         <label class="label cursor-pointer justify-start gap-3">
           <input type="checkbox" name="is_rescheduled" class="checkbox checkbox-primary" />
@@ -38,7 +52,7 @@
 
       <div class="modal-action">
         <button type="button" class="btn btn-ghost" onclick="document.getElementById('record-teach-modal').remove()">Batal</button>
-        <button type="submit" class="btn btn-success text-white"">Simpan Record</button>
+        <button type="submit" class="btn btn-success text-white">Simpan Record</button>
       </div>
     </form>
   </div>

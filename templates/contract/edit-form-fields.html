@@ -27,6 +27,17 @@
         {% endif %}
     </div>
 
+    <!-- Input Keterangan -->
+    <div class="form-control w-full">
+        <label class="label">
+            <span class="label-text font-semibold">Keterangan</span>
+        </label>
+        {{ form.keterangan }}
+        {% if form.keterangan.errors %}
+            <span class="text-error text-xs mt-1">{{ form.keterangan.errors|first }}</span>
+        {% endif %}
+    </div>
+
     <!-- Input Total Pertemuan -->
     <div class="form-control w-full">
         <label class="label">

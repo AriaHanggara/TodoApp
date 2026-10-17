@@ -18,7 +18,7 @@
     <meta name="csrf-token" content="{{ csrf_token }}"> <!--Add CSRF token to the request header-->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.5/dist/htmx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
@@ -36,54 +36,105 @@
     {% include 'partial/navbar.html' %}
 
     <main class="container mx-auto px-2 md:px-16 lg:px-32 xl:px-48 2xl:px-64"></main>
-        {% block content %}{% endblock %}
-    </main>
+    {% block content %}{% endblock %}
 
     <div id="dialog-container"></div>
 
     <!-- Wadah Toast/Notifikasi DaisyUI (Posisikan di kanan bawah layar) -->
     <div id="toast-container" class="toast toast-end toast-bottom z-50"></div>
+    
+    <script>
+        // Add CSRF token to all HTMX requests
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+            event.detail.headers['X-CSRFToken'] = csrfToken;
+        });
+
+        // ===== DIALOG DINAMIS (modal add/edit yang dimuat via HTMX) =====
+        // Hanya SATU dialog form yang ada di DOM pada satu waktu, sehingga
+        // id/name field (id_client, id_kontrak, ...) tidak pernah duplikat.
+        // Duplikat inilah yang merusak Select2 dan forward DAL.
+        function destroySelect2(root) {
+            const jq = window.jQuery;
+            if (!jq || !jq.fn || !jq.fn.select2) return;
+            jq(root).find('select').addBack('select').each(function () {
+                try {
+                    if (jq(this).data('select2')) jq(this).select2('destroy');
+                } catch (e) { /* abaikan */ }
+            });
+        }
+
+        // HTMX (swap outerHTML pada form invalid) mencocokkan elemen lama & baru yang
+        // ber-id sama, lalu pada fase "settle" me-reset atribut class/style/width/height
+        // elemen baru ke kondisi awal. Akibatnya class 'select2-hidden-accessible'
+        // hilang dan <select> asli tampil di samping kotak Select2 (terlihat ganda).
+        // Fitur itu hanya untuk animasi transisi, jadi dimatikan.
+        htmx.config.attributesToSettle = [];
+
+        // Pengaman tambahan setelah swap: pastikan tiap <select> ber-Select2 hanya punya
+        // satu container, <select> aslinya tersembunyi, dan lebarnya 100%.
+        function dedupeSelect2(root) {
+            const jq = window.jQuery;
+            if (!jq || !jq.fn || !jq.fn.select2) return;
+            jq(root).find('select').each(function () {
+                const inst = jq(this).data('select2');
+                if (!inst) return;
+                jq(this).siblings('.select2-container').not(inst.$container).remove();
+                jq(this).addClass('select2-hidden-accessible');
+                inst.$container.css('width', '100%');
+            });
+        }
+
+        // Tampilkan dialog yang baru dimuat sebagai modal
+        document.body.addEventListener('htmx:afterSettle', () => {
+            dedupeSelect2(document.body);
+            document.querySelectorAll('dialog[data-auto-show]:not([open])')
+                .forEach(d => d.showModal());
+        });
+
+        // Cancel / Esc / .close(): bersihkan Select2 lalu hapus dialog dari DOM.
+        // Event 'close' tidak bubble, jadi didengarkan di fase capture.
+        document.addEventListener('close', (evt) => {
+            const dlg = evt.target;
+            if (dlg.matches && dlg.matches('dialog[data-auto-show]')) {
+                destroySelect2(dlg);
+                dlg.remove();
+            }
+        }, true);
+
+        // Saat HTMX membuang elemen (mis. swap setelah sukses), destroy Select2-nya
+        document.body.addEventListener('htmx:beforeCleanupElement', (evt) => {
+            if (evt.target.tagName === 'SELECT') destroySelect2(evt.target);
+        });
+
+        // NOTIFIKASI TOAST
+        document.body.addEventListener('showToast', function(evt) {
+            const message = evt.detail.message;
+            const alertType = evt.detail.type;
+            
+            const toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) return;
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${alertType} shadow-lg transition-all duration-300 transform translate-y-2 opacity-0`;
+            alertDiv.innerHTML = `<div><span>${message}</span></div>`;
+
+            toastContainer.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.classList.remove('opacity-0', 'translate-y-2');
+            }, 10);
+
+            setTimeout(() => {
+                alertDiv.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 300);
+            }, 3000);
+        });
+    </script>
 
     {% block extra_js %}{% endblock %}
-
-    <style>
-        
-
-    </style>
-    
-<script>
-    // Add CSRF token to all HTMX requests
-    document.body.addEventListener('htmx:configRequest', (event) => {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-        event.detail.headers['X-CSRFToken'] = csrfToken;
-    });
-
-    // NOTIFIKASI TOAST
-    document.body.addEventListener('showToast', function(evt) {
-        const message = evt.detail.message;
-        const alertType = evt.detail.type;
-        
-        const toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) return;
-
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert ${alertType} shadow-lg transition-all duration-300 transform translate-y-2 opacity-0`;
-        alertDiv.innerHTML = `<div><span>${message}</span></div>`;
-
-        toastContainer.appendChild(alertDiv);
-
-        setTimeout(() => {
-            alertDiv.classList.remove('opacity-0', 'translate-y-2');
-        }, 10);
-
-        setTimeout(() => {
-            alertDiv.classList.add('opacity-0', 'translate-y-2');
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 300);
-        }, 3000);
-    });
-</script>
 
 </body>
 </html>
