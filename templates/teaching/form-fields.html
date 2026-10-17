@@ -1,6 +1,6 @@
 <form id="add-teach-form" 
       hx-post="{% url 'todo_app:teaching_create' %}" 
-      hx-target="#add-teach-form" 
+      hx-target="#add-teach-modal" 
       hx-swap="outerHTML"
       class="space-y-4">
   {% csrf_token %}

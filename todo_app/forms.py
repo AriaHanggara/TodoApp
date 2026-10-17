@@ -68,6 +68,7 @@ class ContractForm(forms.ModelForm):
             'tipe_kontrak',
             "total_pertemuan",
             "total_biaya",
+            'keterangan',
         ]
 
         widgets = {
@@ -99,6 +100,13 @@ class ContractForm(forms.ModelForm):
                 attrs={
                     "class": "select select-primary",
                     "min": 0,
+                }
+            ),
+            "keterangan": forms.Textarea(
+                attrs={
+                    "class": "textarea textarea-bordered w-full",
+                    "rows": 3,
+                    "placeholder": "Keterangan Kontrak",
                 }
             ),
         }
@@ -186,28 +194,31 @@ class PaymentUpdateForm(PaymentForm):
 
 
 class TeachingForm(forms.ModelForm):
+    # Selector dialog tempat dropdown Select2 dirender. Di-override oleh form turunan.
+    dropdown_parent = '#add-teach-modal'
+
     client = forms.ModelChoiceField(
-            queryset=Client.objects.all(),
-            widget=autocomplete.ModelSelect2(
-                url='todo_app:autocomplete_client',
-                attrs={
-                    'data-dropdown-parent': '#add-teach-modal',
-                    'class': 'input input-bordered w-full'
-                }
-            )
-        )
+        queryset=Client.objects.all(),
+        widget=autocomplete.ModelSelect2(
+            url='todo_app:autocomplete_client',
+            attrs={'class': 'input input-bordered w-full'},
+        ),
+    )
 
     kontrak = forms.ModelChoiceField(
-            queryset=Contract.objects.all(),
-            widget=autocomplete.ModelSelect2(
-                url='todo_app:autocomplete_contract',
-                attrs={
-                    'data-dropdown-parent': '#add-teach-modal',
-                    'class': 'input input-bordered w-full'
-                }
-            )
-        )
-    
+        queryset=Contract.objects.all(),
+        widget=autocomplete.ModelSelect2(
+            url='todo_app:autocomplete_contract',
+            forward=['client'],
+            attrs={'class': 'input input-bordered w-full'},
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ('client', 'kontrak'):
+            self.fields[name].widget.attrs['data-dropdown-parent'] = self.dropdown_parent
+
     class Meta:
         model = Teaching
 
@@ -254,26 +265,19 @@ class TeachingForm(forms.ModelForm):
 
     # def clean(self):
     #     cleaned_data = super().clean()
-
     #     start_time = cleaned_data.get("start_time")
     #     end_time = cleaned_data.get("end_time")
-
     #     if start_time and end_time:
     #         if start_time >= end_time:
-    #             self.add_error(
-    #                 "end_time",
-    #                 "Jam selesai harus lebih besar dari jam mulai.",
-    #             )
-
+    #             self.add_error("end_time", "Jam selesai harus lebih besar dari jam mulai.")
     #     return cleaned_data
 
 
 class TeachingUpdateForm(TeachingForm):
-    class Meta(TeachingForm.Meta):  # 1. Warisi Meta milik TeachingForm
-        # 2. Tambahkan 'status_teaching' ke daftar fields milik parent
-        fields = TeachingForm.Meta.fields + ["status_teaching"]
+    dropdown_parent = '#edit-teach-modal'
 
-        # 3. Gabungkan widget dari parent dengan widget baru untuk status_teaching
+    class Meta(TeachingForm.Meta):
+        fields = TeachingForm.Meta.fields + ["status_teaching"]
         widgets = {
             **TeachingForm.Meta.widgets,
             "status_teaching": forms.CheckboxInput(
@@ -282,11 +286,3 @@ class TeachingUpdateForm(TeachingForm):
                 }
             ),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # 4. (Opsional) Jika ID modal edit berbeda dari modal add (#edit-teach-modal)
-        if 'client' in self.fields:
-            self.fields['client'].widget.attrs['data-dropdown-parent'] = '#edit-teach-modal'
-        if 'kontrak' in self.fields:
-            self.fields['kontrak'].widget.attrs['data-dropdown-parent'] = '#edit-teach-modal'

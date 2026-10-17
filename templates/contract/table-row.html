@@ -5,6 +5,7 @@
     <td class="text-center">{{ forloop.counter0|add:page_obj.start_index }}</td>
     <td>{{ contract.client.nama }}</td>
     <td>{{ contract.total_pertemuan }}</td>
+    <td>{{ contract.keterangan }}</td>
     <td>{{ contract.get_pembayaran_display }}</td>
     <td>{{ contract.get_contract_status_display }}</td>
     <td>{% language 'de' %}{{ contract.total_biaya|intcomma }}{% endlanguage %}</td>

@@ -110,6 +110,8 @@ class Contract(models.Model):
         default="Berjalan"
     )
 
+    keterangan = models.TextField(default="", blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -325,7 +327,6 @@ class MaterialFile(models.Model):
 
 
 class TeachingRecord(models.Model):
-    """Model rekam jejak / jurnal sesi mengajar yang telah dilaksanakan."""
     kontrak = models.ForeignKey(
         Contract,
         on_delete=models.CASCADE,
@@ -348,6 +349,17 @@ class TeachingRecord(models.Model):
 
     class Meta:
         ordering = ['-tanggal_pelaksanaan']
+
+    def delete(self, *args, **kwargs):
+        kontrak = self.kontrak
+        super().delete(*args, **kwargs)
+        
+        # Jika kontrak Privat dan sebelumnya statusnya "Habis", 
+        # kembalikan ke "Berjalan" jika total mengajar kini sudah di bawah kuota.
+        if kontrak.tipe_kontrak == "Privat" and kontrak.contract_status == "Habis":
+            if kontrak.total_pertemuan and kontrak.total_mengajar < kontrak.total_pertemuan:
+                kontrak.contract_status = "Berjalan"
+                kontrak.save(update_fields=["contract_status"])
 
     def __str__(self):
         return f"{self.kontrak.client.nama} - {self.tanggal_pelaksanaan.strftime('%d/%m/%Y %H:%M')}"

@@ -37,11 +37,11 @@
 
     <!-- Add New Task Button -->
     <button
-      onclick="document.getElementById('add-teach-modal').showModal()"
+      hx-get="{% url 'todo_app:teaching_create' %}"
+      hx-target="#dialog-container"
+      hx-swap="innerHTML"
       class="btn btn-primary w-full md:w-auto"
     >➕ Add New Teach</button>
-
-    {% include 'teaching/add-modal.html' %}
   </div>
 
   <!-- Filters -->
@@ -80,22 +80,5 @@
 
 <!-- Container Tabel & Pagination -->
 {% include 'teaching/table-container.html' %}
-
-<script>
-  // KETIKA SUKSES: Tutup modal dan Reset Form
-  document.body.addEventListener('teachingListChanged', function() {
-      const addModal = document.getElementById('add-teach-modal');
-      if (addModal && typeof addModal.close === 'function') {
-          addModal.close(); 
-          $('#id_client').remove();
-          $('#id_kontrak').remove();
-      }
-
-      const form = document.getElementById('add-teach-form');
-      if (form) {
-          form.reset(); 
-      }
-  });
-</script>
 
 {% endblock content %}

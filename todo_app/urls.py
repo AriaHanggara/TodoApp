@@ -36,7 +36,9 @@ urlpatterns = [
 	path("delete-teaching/<int:pk>/", views.DeleteTeachingView.as_view(), name='teaching_delete'),
 	path('edit-teaching/<int:pk>/', views.EditTeachingView.as_view(), name='teaching_edit'),
 	path('search-teaching/', views.SearchTeachingView.as_view(), name='search_teaching'),
-	path('record-teaching/<int:pk>/', views.RecordTeachingView.as_view(), name='teaching_record'),
+	path('record-teaching/<int:pk>/', views.RecordTeachingView.as_view(), name='teaching_record'), ## url buat add record di modal
+	path('record-teaching/', views.ListTeachingRecordView.as_view(), name='teaching_record_list'),
+	path("delete-teaching-record/<int:pk>/", views.DeleteTeachingRecordView.as_view(), name='teaching_record_delete'),
 ]
 
 
