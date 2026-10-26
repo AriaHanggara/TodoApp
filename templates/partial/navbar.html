@@ -12,7 +12,7 @@
       </button>
 
       <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-        <li><a href="#">About</a></li>
+        <li><a href="{% url 'todo_app:about_me' %}">About</a></li>
 
         {% if user.is_authenticated %}
          {% if user.is_staff %}
@@ -64,13 +64,13 @@
       </ul>
     </div>
     <!-- Logo -->
-    <a class="btn btn-ghost text-xl font-bold" href="{% url 'todo_app:teaching_list' %}">Todo Manager</a>
+    <a class="btn btn-ghost text-xl font-bold" href="{% url 'todo_app:teaching_list' %}">Belajar Jepang</a>
   </div>
 
   <!-- Center (for large screens) -->
   <div class="navbar-center hidden lg:flex">
     <ul class="menu menu-horizontal px-1">
-      <li><a href="#">About</a></li>
+      <li><a href="{% url 'todo_app:about_me' %}">About</a></li>
 
       {% if user.is_authenticated %}
        {% if user.is_staff %}

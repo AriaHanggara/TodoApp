@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>Tentang {{ profile.nickname }} | Nihongo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  /* Desain NEON: dark bento grid, gradasi indigo-pink. Palet mandiri, tidak mengikuti tema DaisyUI. */
+  .neon { position:relative; overflow:hidden; background:#0b0b14; color:#e8e8f2;
+          font-family:'Zen Kaku Gothic New','Noto Sans JP',system-ui,sans-serif; }
+  .neon::before { content:""; position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(40rem 28rem at 8% -5%, rgba(99,102,241,.35), transparent 60%),
+                radial-gradient(36rem 26rem at 100% 30%, rgba(236,72,153,.25), transparent 60%); }
+  .neon > * { position:relative; }
+  .neon .tile { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+                border-radius:1.5rem; padding:1.5rem; backdrop-filter:blur(8px); }
+  .neon .grad { background:linear-gradient(90deg,#818cf8,#f472b6,#fb923c);
+                -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .neon .muted { color:rgba(232,232,242,.62); }
+  .neon .kicker { font-size:.7rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:#f9a8d4; }
+  .neon .chip { border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:.15rem .7rem; font-size:.75rem; }
+  .neon .btn-grad { border:0; color:#fff; background:linear-gradient(90deg,#6366f1,#ec4899); }
+</style>
+{% endblock title %}
+
+{% block content %}
+<div class="neon mx-auto mb-20 max-w-6xl rounded-3xl p-4 md:p-6">
+  <div class="grid grid-cols-12 gap-4">
+
+    <!-- HERO -->
+    <section class="tile col-span-12 flex flex-col justify-center lg:col-span-8 lg:p-10">
+      <span class="chip w-fit">🇯🇵 Nihongo Sensei · SD → SMA → Dewasa</span>
+      <h1 class="mt-5 text-4xl font-black leading-tight md:text-6xl"><span class="grad">日本語</span> dimulai dari sini</h1>
+      <p class="muted mt-4 max-w-xl text-lg">{{ profile.tagline }}</p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a href="{{ wa_url }}" target="_blank" rel="noopener" class="btn btn-grad btn-lg">💬 Chat WhatsApp</a>
+        <a href="#portofolio" class="btn btn-lg btn-outline border-white/30 text-white hover:bg-white/10">Portofolio</a>
+      </div>
+    </section>
+
+    <!-- PROFIL -->
+    <section class="tile col-span-12 flex flex-col items-center justify-center text-center lg:col-span-4">
+      {% if profile.photo %}<img src="{{ profile.photo }}" alt="Foto {{ profile.nickname }}" class="size-32 rounded-3xl object-cover">
+      {% else %}<div class="grid size-32 place-items-center rounded-3xl bg-linear-to-br from-indigo-500 to-pink-500 text-5xl font-black" aria-hidden="true">先生</div>{% endif %}
+      <h2 class="mt-4 text-2xl font-black">{{ profile.nickname }}</h2>
+      <p class="muted text-sm">{{ profile.name }}</p>
+      <span class="chip mt-3">{{ profile.whatsapp_display }}</span>
+    </section>
+
+    <!-- STATISTIK -->
+    {% for s in stats %}
+    <div class="tile col-span-6 text-center lg:col-span-3"><div class="grad text-4xl font-black">{{ s.value }}</div><div class="muted mt-1 text-sm">{{ s.label }}</div></div>
+    {% endfor %}
+
+    <!-- TENTANG & DATA DIRI -->
+    <section id="tentang" class="tile col-span-12 scroll-mt-28 lg:col-span-7">
+      <p class="kicker">自己紹介 · Tentang saya</p>
+      <div class="mt-3 space-y-3 leading-relaxed text-white/80">{% for p in profile.bio %}<p>{{ p }}</p>{% endfor %}</div>
+    </section>
+    <section class="tile col-span-12 lg:col-span-5">
+      <p class="kicker">Data diri</p>
+      <dl class="mt-3 divide-y divide-white/10">
+        {% for label, value in profile.details %}<div class="flex justify-between gap-4 py-2 text-sm"><dt class="muted">{{ label }}</dt><dd class="text-right font-bold">{{ value }}</dd></div>{% endfor %}
+      </dl>
+    </section>
+
+    <!-- PROGRAM -->
+    <div id="program" class="col-span-12 mt-6 scroll-mt-28"><p class="kicker">授業 · Program</p><h2 class="text-3xl font-black">Pilih jalur sesuai usia & tujuanmu</h2></div>
+    {% for p in programs %}
+    <article class="tile col-span-12 flex flex-col lg:col-span-4 {% if p.featured %}ring-2 ring-pink-400/70{% endif %}">
+      <div class="flex items-center justify-between"><span class="text-3xl" aria-hidden="true">{{ p.icon }}</span>
+        <span class="chip">{% if p.featured %}⭐ Paling diminati{% else %}{{ p.badge }}{% endif %}</span></div>
+      <h3 class="mt-4 text-xl font-black">{{ p.title }}</h3>
+      <p class="text-sm font-bold text-pink-300">{{ p.audience }}</p>
+      <p class="muted mt-2 text-sm">{{ p.desc }}</p>
+      <dl class="mt-4 space-y-3 text-sm">
+        {% for label, value in p.specs %}<div><dt class="muted text-xs uppercase tracking-wider">{{ label }}</dt><dd class="font-bold">{{ value }}</dd></div>{% endfor %}
+      </dl>
+      <div class="mt-auto pt-5"><a href="{{ wa_url }}" target="_blank" rel="noopener" class="btn btn-sm w-full {% if p.featured %}btn-grad{% else %}btn-outline border-white/30 text-white hover:bg-white/10{% endif %}">Tanya program ini</a></div>
+    </article>
+    {% endfor %}
+
+    <!-- PORTOFOLIO -->
+    <div id="portofolio" class="col-span-12 mt-6 scroll-mt-28"><p class="kicker">実績 · Portofolio</p><h2 class="text-3xl font-black">Pengalaman & karya nyata</h2></div>
+    <section class="tile col-span-12 lg:col-span-5">
+      <ol class="space-y-6 border-l border-white/15 pl-6">
+        {% for e in experiences %}
+        <li class="relative"><span class="absolute -left-[1.95rem] top-1 size-3 rounded-full bg-pink-400" aria-hidden="true"></span>
+          <p class="kicker">{{ e.year }}</p><h3 class="font-black">{{ e.title }}</h3><p class="muted text-sm">{{ e.place }}. {{ e.desc }}</p></li>
+        {% endfor %}
+      </ol>
+    </section>
+    <div class="col-span-12 grid gap-4 sm:grid-cols-2 lg:col-span-7">
+      {% for i in portfolio %}
+      <article class="tile"><div class="flex items-center justify-between"><span class="text-3xl" aria-hidden="true">{{ i.icon }}</span><span class="chip">{{ i.tag }} · {{ i.year }}</span></div>
+        <h3 class="mt-3 font-black leading-snug">{{ i.title }}</h3><p class="muted mt-1 text-sm">{{ i.desc }}</p></article>
+      {% endfor %}
+    </div>
+
+    <!-- TESTIMONI -->
+    {% for t in testimonials %}
+    <figure id="{% if forloop.first %}testimoni{% endif %}" class="tile col-span-12 lg:col-span-4">
+      <blockquote class="text-white/85">“{{ t.quote }}”</blockquote>
+      <figcaption class="mt-3 text-sm"><b>{{ t.name }}</b> <span class="muted">· {{ t.role }}</span></figcaption>
+    </figure>
+    {% endfor %}
+
+    <!-- KONTAK -->
+    <section id="kontak" class="tile col-span-12 grid scroll-mt-28 items-center gap-8 md:grid-cols-[1.4fr_1fr] lg:p-10">
+      <div>
+        <p class="kicker">お問い合わせ · Kontak</p>
+        <h2 class="mt-2 text-3xl font-black md:text-4xl">Siap <span class="grad">level up</span> bahasa Jepangmu?</h2>
+        <p class="muted mt-3 max-w-lg">Scan QR atau klik tombol untuk chat via WhatsApp. Tanyakan jadwal, biaya, dan kelas percobaan.</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="{{ wa_url }}" target="_blank" rel="noopener" class="btn btn-grad btn-lg">💬 {{ profile.whatsapp_display }}</a>
+          <button type="button" id="copy-wa" class="btn btn-lg btn-outline border-white/30 text-white hover:bg-white/10" data-url="{{ wa_url }}">🔗 Salin tautan</button>
+        </div>
+      </div>
+      <div class="mx-auto text-center">
+        <div class="rounded-3xl bg-white p-4 shadow-2xl shadow-pink-500/20">
+          <div id="wa-qr" class="size-48 break-all text-xs text-neutral-700" data-url="{{ wa_url }}" role="img" aria-label="QR code WhatsApp {{ profile.nickname }}"><noscript>{{ wa_url }}</noscript></div>
+        </div>
+        <p class="mt-3 text-sm font-bold">📱 Scan untuk chat WhatsApp</p>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}{% include 'about_common.html' %}{% endblock %}

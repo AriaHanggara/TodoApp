@@ -179,7 +179,7 @@ class Payment(models.Model):
 
     tanggal = models.DateTimeField()
     total = models.PositiveBigIntegerField()
-    kode_payment = models.CharField(max_length=4, blank=True, unique=True, editable=False)
+    kode_payment = models.CharField(max_length=10, blank=True, unique=True, editable=False)
     # kode_payment = models.CharField(max_length=4, default='Temporary Default')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -190,7 +190,7 @@ class Payment(models.Model):
         if not self.kode_payment:
             while True:
                 kode = get_random_string(length=4).upper()
-                if not Payment.objects.filter(kode_payment=kode).exists():
+                if not Payment.objects.filter(kode_payment="PAY-"+kode).exists():
                     self.kode_payment = "PAY-" + kode
                     break
         super().save(*args, **kwargs)
@@ -206,7 +206,7 @@ class Teaching(models.Model):
     client = models.ForeignKey(
         Client,
         on_delete=models.CASCADE,
-        related_name="teachings"
+        related_name="teaching_client"
     )
 
     kontrak = models.ForeignKey(

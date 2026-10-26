@@ -35,41 +35,18 @@
 
     <!-- Add New Contract Button -->
     <button
-      onclick="document.getElementById('add-contract-modal').showModal()"
-      class="btn btn-primary w-full md:w-auto shrink-0"
+      hx-get="{% url 'todo_app:contract_create' %}"
+      hx-target="#dialog-container"
+      hx-swap="innerHTML"
+      class="btn btn-primary w-full md:w-auto"
     >➕ Add New Contract</button>
-
-    {% include 'contract/add-modal.html' %}
   </div>
-
-  <!-- sini -->
-
-  <!-- sini -->
 
 
 </div>
 
 <!-- Container Tabel & Pagination -->
 {% include 'contract/table-container.html' %}
-
-
-
-<script>
-
-    // KETIKA SUKSES: Tutup modal dan Reset Form
-    document.body.addEventListener('contractListChanged', function() {
-        const addModal = document.getElementById('add-contract-modal');
-        if (addModal && typeof addModal.close === 'function') {
-            addModal.close(); 
-            $('#id_client').remove();
-        }
-
-        const form = document.getElementById('add-contract-form');
-        if (form) {
-            form.reset(); 
-        }
-    });
-</script>
 
 
 <!-- Script Helper untuk Mengelola Query Parameters Secara Dinamis -->

@@ -33,41 +33,18 @@
       {% include 'partial/loading-bar.html' %}
     </label>
 
-    <!-- Add New Contract Button -->
+    <!-- Add New Payment Button -->
     <button
-      onclick="document.getElementById('add-payment-modal').showModal()"
-      class="btn btn-primary w-full md:w-auto shrink-0"
+      hx-get="{% url 'todo_app:payment_create' %}"
+      hx-target="#dialog-container"
+      hx-swap="innerHTML"
+      class="btn btn-primary w-full md:w-auto"
     >➕ Add New Payment</button>
 
-    {% include 'payment/add-modal.html' %}
   </div>
-
-  <!-- sini -->
-
-  <!-- sini -->
-
-
 </div>
 
 <!-- Container Tabel & Pagination -->
 {% include 'payment/table-container.html' %}
 
-
-
-<script>
-
-    // KETIKA SUKSES: Tutup modal dan Reset Form
-    document.body.addEventListener('paymentListChanged', function() {
-        const addModal = document.getElementById('add-payment-modal');
-        if (addModal && typeof addModal.close === 'function') {
-            addModal.close(); 
-            $('#id_contract').remove();
-        }
-
-        const form = document.getElementById('add-payment-form');
-        if (form) {
-            form.reset(); 
-        }
-    });
-</script>
 {% endblock content %}

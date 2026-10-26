@@ -39,6 +39,9 @@ urlpatterns = [
 	path('record-teaching/<int:pk>/', views.RecordTeachingView.as_view(), name='teaching_record'), ## url buat add record di modal
 	path('record-teaching/', views.ListTeachingRecordView.as_view(), name='teaching_record_list'),
 	path("delete-teaching-record/<int:pk>/", views.DeleteTeachingRecordView.as_view(), name='teaching_record_delete'),
+	path('search-teaching-record/', views.SearchTeachingRecordView.as_view(), name='search_teaching_record'),
+
+	path('about-me/', views.AboutView.as_view(), name='about_me'),
 ]
 
 
