@@ -1,0 +1,32 @@
+<!-- Pemilih desain untuk membandingkan. Hapus blok ini setelah Anda memilih satu desain. -->
+<div class="join fixed bottom-4 left-1/2 z-40 -translate-x-1/2 shadow-xl">
+  <a href="?style=sakura" class="btn btn-sm join-item {% if style == 'sakura' %}btn-neutral{% endif %}">🌸 Sakura</a>
+  <a href="?style=washi" class="btn btn-sm join-item {% if style == 'washi' %}btn-neutral{% endif %}">📜 Washi</a>
+  <a href="?style=neon" class="btn btn-sm join-item {% if style == 'neon' %}btn-neutral{% endif %}">🌌 Neon</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+  (function () {
+    // QR code dibuat dari wa_url, jadi otomatis ikut berubah saat nomor diganti di data.
+    var box = document.getElementById('wa-qr');
+    if (box) {
+      try {
+        var qr = qrcode(0, 'M');
+        qr.addData(box.dataset.url);
+        qr.make();
+        box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+        var svg = box.querySelector('svg');
+        if (svg) svg.setAttribute('class', 'w-full h-auto');
+      } catch (e) { box.textContent = box.dataset.url; }
+    }
+    var btn = document.getElementById('copy-wa');
+    if (btn) btn.addEventListener('click', function () {
+      navigator.clipboard.writeText(btn.dataset.url).then(function () {
+        document.body.dispatchEvent(new CustomEvent('showToast', {
+          detail: { message: 'Tautan WhatsApp disalin', type: 'alert-success' }
+        }));
+      });
+    });
+  })();
+</script>

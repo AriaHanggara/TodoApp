@@ -24,9 +24,9 @@
         name="search"
         class="grow"
         placeholder="Search schedule..."
-        hx-get="{% url 'todo_app:search_teaching' %}"
+        hx-get="{% url 'todo_app:search_teaching_record' %}"
         hx-trigger="keyup changed delay:500ms"
-        hx-target="#teach-table-container"
+        hx-target="#record-teach-table-container"
         hx-sync="this:abort"
         hx-indicator="#spinner"
         hx-on::before-request="document.getElementById('tbody').style.opacity= 0.4;"
@@ -72,22 +72,5 @@
 
 <!-- Container Tabel & Pagination -->
 {% include 'teaching/record-table-container.html' %}
-
-<script>
-  // KETIKA SUKSES: Tutup modal dan Reset Form
-  document.body.addEventListener('RecordTeachingListChanged', function() {
-      const addModal = document.getElementById('add-teach-modal');
-      if (addModal && typeof addModal.close === 'function') {
-          addModal.close(); 
-          $('#id_client').remove();
-          $('#id_kontrak').remove();
-      }
-
-      const form = document.getElementById('add-teach-form');
-      if (form) {
-          form.reset(); 
-      }
-  });
-</script>
 
 {% endblock content %}

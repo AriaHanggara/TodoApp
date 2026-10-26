@@ -4,7 +4,7 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.http import HttpResponseNotAllowed, Http404
+from django.http import HttpResponseNotAllowed, Http404, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 from django.views import View
 from django.views.generic import CreateView, ListView, UpdateView, DeleteView
@@ -23,8 +23,239 @@ from .forms import (
 import json
 from dal import autocomplete
 from django.utils import timezone
+from urllib.parse import quote
 
 
+
+# ABOUT = {
+#     "profile": {
+#         "name": "Sakura Wulandari, S.Pd",
+#         "nickname": "Sensei Sakura",
+#         "tagline": (
+#             "Mengajar bahasa Jepang untuk anak-anak lewat lagu, permainan, dan cerita, "
+#             "baik privat maupun di sekolah. Belajar jadi seru, bukan menakutkan!"
+#         ),
+#         "photo": "",  # isi URL foto, mis. "/media/profile/sensei.jpg". Kosong = tampil kanji 先生
+#         "bio": [
+#             "Halo! Saya pengajar bahasa Jepang dengan pengalaman lebih dari 6 tahun mengajar "
+#             "anak usia 5-15 tahun. Saya percaya anak belajar paling cepat saat mereka merasa senang.",
+#             "Setiap pertemuan saya rancang dengan permainan kana, lagu anak Jepang, dan pengenalan "
+#             "budaya, sehingga anak tidak hanya hafal kosakata, tetapi juga berani berbicara.",
+#         ],
+#         "details": [
+#             ("Nama lengkap", "Sakura Wulandari, S.Pd"),
+#             ("Domisili", "Jakarta, Indonesia"),
+#             ("Pendidikan", "S1 Pendidikan Bahasa Jepang"),
+#             ("Sertifikasi", "JLPT N2 · Sertifikat Pengajar BIPA/NIHONGO"),
+#             ("Bahasa", "Indonesia, Jepang, Inggris"),
+#             ("Email", "sensei@example.com"),
+#             ("Instagram", "@sensei.sakura"),
+#         ],
+#         "whatsapp": "6281234567890",  # format internasional tanpa + / 0 di depan
+#         "whatsapp_display": "+62 812-3456-7890",
+#         "wa_message": "Konnichiwa Sensei! Saya ingin tanya kelas bahasa Jepang untuk anak.",
+#     },
+#     "stats": [
+#         {"value": "6+", "label": "Tahun mengajar"},
+#         {"value": "120+", "label": "Murid privat & sekolah"},
+#         {"value": "5", "label": "Sekolah mitra"},
+#         {"value": "N2", "label": "Sertifikasi JLPT"},
+#     ],
+#     "programs": [
+#         {
+#             "icon": "🏠",
+#             "title": "Kelas Privat",
+#             "badge": "1 guru : 1 murid",
+#             "desc": "Materi menyesuaikan kecepatan dan minat anak. Di rumah atau online.",
+#             "points": [
+#                 "Kurikulum dari hiragana & katakana hingga percakapan dasar",
+#                 "Jadwal fleksibel, 60 menit per pertemuan",
+#                 "Laporan perkembangan untuk orang tua",
+#             ],
+#         },
+#         {
+#             "icon": "🏫",
+#             "title": "Mengajar di Sekolah",
+#             "badge": "Kelas kelompok",
+#             "desc": "Ekstrakurikuler & mata pelajaran bahasa Jepang yang interaktif.",
+#             "points": [
+#                 "Metode permainan, lagu, dan proyek kelompok",
+#                 "Silabus dan penilaian siap pakai untuk sekolah",
+#                 "Pengenalan budaya: origami, festival, kuliner",
+#             ],
+#         },
+#     ],
+#     "experiences": [
+#         {"year": "2023 - sekarang", "title": "Guru Bahasa Jepang (Ekstrakurikuler)",
+#          "place": "SD Nusantara Ceria", "desc": "Mengampu 4 kelas, 80+ siswa kelas 3-6."},
+#         {"year": "2020 - sekarang", "title": "Pengajar Privat Anak",
+#          "place": "Mandiri", "desc": "Membimbing 40+ murid privat usia 5-15 tahun."},
+#         {"year": "2019 - 2022", "title": "Instruktur Bahasa Jepang",
+#          "place": "Lembaga Kursus Sakura", "desc": "Kelas dasar N5-N4 untuk anak dan remaja."},
+#     ],
+#     "portfolio": [
+#         {"icon": "🏆", "tag": "Prestasi", "year": "2025", "title": "Juara 1 Lomba Pidato Bahasa Jepang Anak",
+#          "desc": "Murid binaan meraih juara tingkat provinsi."},
+#         {"icon": "🎎", "tag": "Kegiatan", "year": "2024", "title": "Festival Budaya Jepang Sekolah",
+#          "desc": "Penampilan lagu, origami, dan kimono untuk 300+ penonton."},
+#         {"icon": "📘", "tag": "Karya", "year": "2024", "title": "Buku Aktivitas Kana untuk Anak",
+#          "desc": "Lembar mewarnai & latihan menulis hiragana-katakana."},
+#         {"icon": "🎓", "tag": "Sertifikasi", "year": "2022", "title": "JLPT N2",
+#          "desc": "Japanese-Language Proficiency Test level N2."},
+#     ],
+#     "testimonials": [
+#         {"quote": "Anak saya yang awalnya malu kini rajin latihan menyanyi lagu Jepang di rumah.",
+#          "name": "Ibu Rina", "role": "Orang tua murid privat"},
+#         {"quote": "Metodenya menyenangkan. Siswa antusias dan nilai ekstrakurikulernya meningkat.",
+#          "name": "Bapak Andi", "role": "Kepala SD Nusantara Ceria"},
+#         {"quote": "Dalam 3 bulan, anak saya sudah bisa memperkenalkan diri dalam bahasa Jepang.",
+#          "name": "Ibu Dewi", "role": "Orang tua murid privat"},
+#     ],
+# }
+
+
+# class AboutView(TemplateView):
+#     """Halaman publik, sengaja tanpa LoginRequiredMixin agar bisa dibuka pengunjung."""
+
+#     template_name = "about.html"
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context.update(ABOUT)
+#         profile = ABOUT["profile"]
+#         # Satu sumber kebenaran untuk tombol WhatsApp & QR code
+#         context["wa_url"] = f"https://wa.me/{profile['whatsapp']}?text={quote(profile['wa_message'])}"
+#         return context
+
+ABOUT = {
+    "profile": {
+        "name": "Sakura Wulandari, S.Pd",
+        "nickname": "Sensei Sakura",
+        "tagline": (
+            "Mengajar bahasa Jepang untuk siswa SD hingga SMA dan profesional yang sudah bekerja, "
+            "baik privat maupun di sekolah. Materi disesuaikan usia dan tujuan, belajar jadi seru!"
+        ),
+        "photo": "",  # isi URL foto, mis. "/media/profile/sensei.jpg". Kosong = tampil kanji 先生
+        "bio": [
+            "Halo! Saya pengajar bahasa Jepang dengan pengalaman lebih dari 6 tahun mengajar "
+            "siswa SD, SMP, SMA, hingga karyawan. Saya percaya belajar paling cepat saat kita merasa senang "
+            "dan tahu untuk apa kita belajar.",
+            "Setiap pertemuan saya rancang sesuai usia: permainan dan lagu untuk anak, latihan JLPT "
+            "untuk remaja, serta percakapan kerja untuk profesional, agar semua berani berbicara.",
+        ],
+        "details": [
+            ("Nama lengkap", "Sakura Wulandari, S.Pd"),
+            ("Domisili", "Jakarta, Indonesia"),
+            ("Pendidikan", "S1 Pendidikan Bahasa Jepang"),
+            ("Sertifikasi", "JLPT N2 · Sertifikat Pengajar BIPA/NIHONGO"),
+            ("Bahasa", "Indonesia, Jepang, Inggris"),
+            ("Email", "sensei@example.com"),
+            ("Instagram", "@sensei.sakura"),
+        ],
+        "whatsapp": "6281234567890",  # format internasional tanpa + / 0 di depan
+        "whatsapp_display": "+62 812-3456-7890",
+        "wa_message": "Konnichiwa Sensei! Saya ingin tanya kelas bahasa Jepang.",
+    },
+    "stats": [
+        {"value": "6+", "label": "Tahun mengajar"},
+        {"value": "120+", "label": "Murid privat & sekolah"},
+        {"value": "5", "label": "Sekolah mitra"},
+        {"value": "N2", "label": "Sertifikasi JLPT"},
+    ],
+    "programs": [
+        {
+            "icon": "🎒", "title": "Kelas SD", "badge": "Fun & Kana", "featured": False,
+            "audience": "Siswa SD · usia 6-12 tahun",
+            "desc": "Mengenal bahasa Jepang lewat lagu, permainan, dan cerita bergambar.",
+            "specs": [
+                ("Fokus materi", "Hiragana, katakana, salam, angka, kosakata harian"),
+                ("Metode", "Lagu, permainan kartu, origami, mewarnai"),
+                ("Format", "Privat di rumah/online atau kelompok di sekolah"),
+                ("Durasi", "45 menit · 1-2x seminggu"),
+                ("Target", "Bisa membaca kana dan memperkenalkan diri"),
+            ],
+        },
+        {
+            "icon": "🎧", "title": "Kelas SMP & SMA", "badge": "Siap JLPT", "featured": True,
+            "audience": "Siswa SMP-SMA · usia 12-18 tahun",
+            "desc": "Fondasi tata bahasa kuat untuk nilai sekolah, JLPT, dan impian kuliah atau pertukaran pelajar ke Jepang.",
+            "specs": [
+                ("Fokus materi", "Tata bahasa N5-N4, kanji dasar, percakapan"),
+                ("Metode", "Latihan soal, anime & lagu, diskusi, simulasi"),
+                ("Format", "Privat/semi-privat atau mata pelajaran/ekskul di sekolah"),
+                ("Durasi", "60-90 menit · 1-2x seminggu"),
+                ("Target", "Lulus JLPT N5/N4 dan lomba pidato"),
+            ],
+        },
+        {
+            "icon": "💼", "title": "Kelas Pekerja & Dewasa", "badge": "Fokus tujuan", "featured": False,
+            "audience": "Karyawan & umum · 18+ tahun",
+            "desc": "Belajar praktis dan efisien untuk karier, kerja di perusahaan Jepang, atau program magang.",
+            "specs": [
+                ("Fokus materi", "Percakapan kerja, keigo dasar, kanji, persiapan JLPT"),
+                ("Metode", "Roleplay, studi kasus kantor, latihan wawancara"),
+                ("Format", "Privat online/offline, jadwal malam atau akhir pekan"),
+                ("Durasi", "60-90 menit · 1-3x seminggu"),
+                ("Target", "Lulus JLPT N4/N3 dan siap wawancara kerja"),
+            ],
+        },
+    ],
+    "experiences": [
+        {"year": "2023 - sekarang", "title": "Guru Bahasa Jepang (Ekstrakurikuler)",
+         "place": "SD Nusantara Ceria", "desc": "Mengampu 4 kelas, 80+ siswa kelas 3-6."},
+        {"year": "2020 - sekarang", "title": "Pengajar Privat Anak",
+         "place": "Mandiri", "desc": "Membimbing 40+ murid privat, dari siswa SD hingga pekerja."},
+        {"year": "2019 - 2022", "title": "Instruktur Bahasa Jepang",
+         "place": "Lembaga Kursus Sakura", "desc": "Kelas dasar N5-N4 untuk anak dan remaja."},
+    ],
+    "portfolio": [
+        {"icon": "🏆", "tag": "Prestasi", "year": "2025", "title": "Juara 1 Lomba Pidato Bahasa Jepang Anak",
+         "desc": "Murid binaan meraih juara tingkat provinsi."},
+        {"icon": "🎎", "tag": "Kegiatan", "year": "2024", "title": "Festival Budaya Jepang Sekolah",
+         "desc": "Penampilan lagu, origami, dan kimono untuk 300+ penonton."},
+        {"icon": "📘", "tag": "Karya", "year": "2024", "title": "Buku Aktivitas Kana untuk Anak",
+         "desc": "Lembar mewarnai & latihan menulis hiragana-katakana."},
+        {"icon": "🎓", "tag": "Sertifikasi", "year": "2022", "title": "JLPT N2",
+         "desc": "Japanese-Language Proficiency Test level N2."},
+    ],
+    "testimonials": [
+        {"quote": "Anak saya yang awalnya malu kini rajin latihan menyanyi lagu Jepang di rumah.",
+         "name": "Ibu Rina", "role": "Orang tua murid privat"},
+        {"quote": "Metodenya menyenangkan. Siswa antusias dan nilai ekstrakurikulernya meningkat.",
+         "name": "Bapak Andi", "role": "Kepala SD Nusantara Ceria"},
+        {"quote": "Materinya praktis dan langsung terpakai untuk wawancara kerja saya. Lulus JLPT N4!",
+         "name": "Dimas", "role": "Karyawan, murid kelas dewasa"},
+    ],
+}
+
+
+class AboutView(TemplateView):
+    """Halaman publik (tanpa LoginRequiredMixin). Pilih desain lewat ?style=sakura|washi|neon."""
+
+    TEMPLATES = {
+        "sakura": "about_sakura.html",  # playful, ramah anak
+        "washi": "about_washi.html",    # editorial minimalis, elegan
+        "neon": "about_neon.html",      # dark bento, modern
+    }
+    DEFAULT_STYLE = "sakura"
+
+    def get_template_names(self):
+        return [self.TEMPLATES[self._style()]]
+
+    def _style(self):
+        style = self.request.GET.get("style", self.DEFAULT_STYLE)
+        return style if style in self.TEMPLATES else self.DEFAULT_STYLE
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(ABOUT)
+        profile = ABOUT["profile"]
+        context["style"] = self._style()
+        # Satu sumber kebenaran untuk tombol WhatsApp & QR code
+        context["wa_url"] = f"https://wa.me/{profile['whatsapp']}?text={quote(profile['wa_message'])}"
+        return context
+
+###################################################################################################################################################
 ######## Url for autocomplete ########
 class ClientFormAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
@@ -127,6 +358,13 @@ class CreateClientView(LoginRequiredMixin, CreateView):
     form_class = ClientForm
     template_name = "client/add-modal.html"
 
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for create data")
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         form.save()
 
@@ -160,6 +398,12 @@ class DeleteClientView(LoginRequiredMixin, DeleteView):
     model = Client
     success_url = reverse_lazy("todo_app:client_list")
 
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for delete data")
+        return super().dispatch(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.delete()
@@ -173,7 +417,7 @@ class DeleteClientView(LoginRequiredMixin, DeleteView):
             response["HX-Trigger"] = json.dumps(payload)
             return response
             
-        return super().delete(request, *args, **kwargs)
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class EditClientView(LoginRequiredMixin, UpdateView):
@@ -182,6 +426,13 @@ class EditClientView(LoginRequiredMixin, UpdateView):
     form_class = ClientForm
     pk_url_kwarg = "pk"
     template_name = "client/edit-modal.html"
+    
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for edit data")
+            # return HttpResponseRedirect("/client")
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return Client.objects.all()
@@ -280,7 +531,7 @@ class ListContractView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         """Inject contract creation form into the context."""
         context = super().get_context_data(**kwargs)
-        context["form"] = ContractForm
+        context["form"] = ContractForm()
         
         # Gunakan or "" untuk mencegah nilai None masuk ke template
         context['current_pembayaran'] = self.request.GET.get("pembayaran", "").strip()
@@ -298,16 +549,20 @@ class ListContractView(LoginRequiredMixin, ListView):
 class CreateContractView(LoginRequiredMixin, CreateView):
     model = Contract
     form_class = ContractForm
-    template_name = "client/add-modal.html"
+    template_name = "contract/add-modal.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for create data")
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         # contract = form.save(commit=False)
         # contract.save()
         form.save()
 
-        # Render kembali form kosong agar siap digunakan untuk penambahan berikutnya
-        fresh_form = ContractForm()
-        response = render(self.request, "contract/form-fields.html", {"form": fresh_form})
+        response = HttpResponse("")
         
         payload = {
             "contractListChanged": {},
@@ -335,6 +590,12 @@ class DeleteContractView(LoginRequiredMixin, DeleteView):
     model = Contract
     success_url = reverse_lazy("todo_app:contract_list")
 
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for delete data")
+        return super().dispatch(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.delete()
@@ -348,7 +609,7 @@ class DeleteContractView(LoginRequiredMixin, DeleteView):
             response["HX-Trigger"] = json.dumps(payload)
             return response
             
-        return super().delete(request, *args, **kwargs)
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class EditContractView(LoginRequiredMixin, UpdateView):
@@ -357,6 +618,12 @@ class EditContractView(LoginRequiredMixin, UpdateView):
     form_class = ContractUpdateForm
     pk_url_kwarg = "pk"
     template_name = "contract/edit-modal.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for edit data")
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return Contract.objects.all()
@@ -446,7 +713,7 @@ class ListPaymentView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         """Inject payment creation form into the context."""
         context = super().get_context_data(**kwargs)
-        context["form"] = PaymentForm
+        context["form"] = PaymentForm()
 
         page_obj = context['page_obj']
         context['custom_page_range'] = page_obj.paginator.get_elided_page_range(
@@ -462,14 +729,16 @@ class CreatePaymentView(LoginRequiredMixin, CreateView):
     form_class = PaymentForm
     template_name = "payment/add-modal.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for create data")
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
-        # contract = form.save(commit=False)
-        # contract.save()
         form.save()
 
-        # Render kembali form kosong agar siap digunakan untuk penambahan berikutnya
-        fresh_form = PaymentForm()
-        response = render(self.request, "payment/form-fields.html", {"form": fresh_form})
+        response = HttpResponse("")
         
         payload = {
             "paymentListChanged": {},
@@ -497,6 +766,12 @@ class DeletePaymentView(LoginRequiredMixin, DeleteView):
     model = Payment
     success_url = reverse_lazy("todo_app:payment_list")
 
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for delete data")
+        return super().dispatch(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.delete()
@@ -519,6 +794,12 @@ class EditPaymentView(LoginRequiredMixin, UpdateView):
     form_class = PaymentUpdateForm
     pk_url_kwarg = "pk"
     template_name = "payment/edit-modal.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for edit data")
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return Payment.objects.all()
@@ -567,8 +848,11 @@ class SearchPaymentView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         query = self.request.GET.get("search", "").strip()
         if query:
-            if query[:2] == "::":
-                return Payment.objects.filter(tanggal__month=query[2:])
+            if query.startswith("::"):
+                month = query[2:].strip()
+                if month.isdigit() and 1 <= int(month) <= 12:
+                    return Payment.objects.filter(tanggal__month=int(month))
+                return Payment.objects.none()  # bulan tidak valid -> hasil kosong, bukan error 500
             return Payment.objects.filter(
                     Q(contract__client__nama__icontains=query) |
                     Q(kode_payment__icontains=query)
@@ -634,6 +918,12 @@ class CreateTeachingView(LoginRequiredMixin, CreateView):
     form_class = TeachingForm
     template_name = "teaching/add-modal.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for create data")
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         """Assign user to task, save it, and return rendered row with success trigger."""
         # teaching = form.save(commit=False)
@@ -668,6 +958,12 @@ class DeleteTeachingView(LoginRequiredMixin, DeleteView):
     model = Teaching
     success_url = reverse_lazy("todo_app:teaching_list")
 
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for delete data")
+        return super().dispatch(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.delete()
@@ -681,7 +977,7 @@ class DeleteTeachingView(LoginRequiredMixin, DeleteView):
             response["HX-Trigger"] = json.dumps(payload)
             return response
             
-        return super().delete(request, *args, **kwargs)
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class EditTeachingView(LoginRequiredMixin, UpdateView):
@@ -691,6 +987,12 @@ class EditTeachingView(LoginRequiredMixin, UpdateView):
     form_class = TeachingUpdateForm
     pk_url_kwarg = "pk"
     template_name = "teaching/edit-modal.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for edit data")
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return Teaching.objects.all()
@@ -804,6 +1106,7 @@ class SearchTeachingView(LoginRequiredMixin, ListView):
         )
         return context
 
+
 ## Class buat fungsi post yg di modal jadwal
 class RecordTeachingView(LoginRequiredMixin, View):
     paginate_by = 20
@@ -857,14 +1160,22 @@ class RecordTeachingView(LoginRequiredMixin, View):
             
             # Ambil input tanggal pelaksanaan dari form (jika kosong, gunakan waktu sekarang)
             input_tanggal = request.POST.get("tanggal_pelaksanaan")
+            tanggal_valid = True
             if input_tanggal:
                 # Konversi string datetime-local HTML ke datetime object yang sadar zona waktu (timezone-aware)
-                naive_dt = timezone.datetime.fromisoformat(input_tanggal)
-                tanggal_pelaksanaan = timezone.make_aware(naive_dt, timezone.get_current_timezone())
+                try:
+                    naive_dt = timezone.datetime.fromisoformat(input_tanggal)
+                    tanggal_pelaksanaan = timezone.make_aware(naive_dt, timezone.get_current_timezone())
+                except ValueError:  # format salah, atau sudah mengandung offset zona waktu
+                    tanggal_valid = False
             else:
                 tanggal_pelaksanaan = timezone.now()
 
-            if kontrak.tipe_kontrak == "Privat":
+            if not tanggal_valid:
+                payload = {
+                    "showToast": {"message": "Gagal! Format tanggal pelaksanaan tidak valid.", "type": "alert-error"}
+                }
+            elif kontrak.tipe_kontrak == "Privat":
                 if kontrak.total_pertemuan and kontrak.total_mengajar >= kontrak.total_pertemuan:
                     payload = {
                         "showToast": {"message": "Gagal! Kuota pertemuan kontrak Privat sudah terpenuhi.", "type": "alert-warning"}
@@ -899,14 +1210,7 @@ class RecordTeachingView(LoginRequiredMixin, View):
                 payload = {
                     "showToast": {"message": "Tipe kontrak tidak dikenali.", "type": "alert-error"}
                 }
-
-        # context = self.get_context_data(teaching=teaching, request=request)
-        # # context['form'] = TeachingForm()
-        # response = render(self.request, "teaching/form-fields.html", context)
-        # context = self.get_context_data(teaching=teaching, request=request)
-        # response = render(request, "teaching/table-row.html", context)
-        # response["HX-Trigger"] = json.dumps(payload)
-        # return response
+                
         response = HttpResponse("")
         response["HX-Trigger"] = json.dumps(payload)
         return response
@@ -944,6 +1248,12 @@ class DeleteTeachingRecordView(LoginRequiredMixin, DeleteView):
     model = TeachingRecord
     success_url = reverse_lazy("todo_app:teaching_record_list")
 
+    def dispatch(self, request, *args, **kwargs):
+        # Check if the request is from htmx
+        if not request.headers.get('HX-Request'):
+            return HttpResponseBadRequest("Bad request for delete data")
+        return super().dispatch(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         teaching_obj = self.object.teaching # Simpan referensi teaching untuk refresh baris jika diperlukan
@@ -960,6 +1270,97 @@ class DeleteTeachingRecordView(LoginRequiredMixin, DeleteView):
             response["HX-Trigger"] = json.dumps(payload)
             return response
 
-        return super().delete(request, *args, **kwargs)
+        # return super().delete(request, *args, **kwargs)
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class SearchTeachingRecordView(LoginRequiredMixin, ListView):
+    """Cari data record mengajar (TeachingRecord). Format query sama seperti SearchTeachingView.
+ 
+    Format khusus:
+      ::jam=14        -> filter berdasarkan jam mulai jadwal (teaching__start_time__hour)
+      ::jadwal=senin  -> filter berdasarkan hari JADWAL (teaching__day_of_week);
+                         menerima nama hari (ID/EN) atau angka 0-6
+      senin           -> (tanpa prefix) filter berdasarkan hari PELAKSANAAN,
+                         yaitu hari dari tanggal_pelaksanaan; menerima nama hari
+                         (ID/EN) atau angka 0-6 (0 = Senin)
+    """
+ 
+    model = TeachingRecord
+    context_object_name = "teaching_records"
+    template_name = "teaching/record-table-container.html"
+    paginate_by = 20
+ 
+    # Pemetaan nama hari (Bahasa Indonesia & Inggris) ke nilai integer day_of_week (0-6)
+    DAY_MAPPING = {
+        "senin": 0, "monday": 0, "mon": 0,
+        "selasa": 1, "tuesday": 1, "tue": 1,
+        "rabu": 2, "wednesday": 2, "wed": 2,
+        "kamis": 3, "thursday": 3, "thu": 3,
+        "jumat": 4, "jum'at": 4, "friday": 4, "fri": 4,
+        "sabtu": 5, "saturday": 5, "sat": 5,
+        "minggu": 6, "sunday": 6, "sun": 6,
+    }
+ 
+    def dispatch(self, request, *args, **kwargs):
+        # Tolak jika diakses langsung dari browser tanpa melalui HTMX
+        if not request.headers.get('HX-Request'):
+            raise Http404("The requested item does not exist.")
+        return super().dispatch(request, *args, **kwargs)
+ 
+    def get_queryset(self):
+        queryset = TeachingRecord.objects.select_related("teaching__client", "kontrak")
+        query = self.request.GET.get("search", "").strip()
+ 
+        if not query:
+            return queryset
+ 
+        query_lower = query.lower()
+ 
+        # 1. Filter khusus "::jam=" (contoh: "::jam=2" atau "::jam=14")
+        if query_lower.startswith("::jam="):
+            try:
+                jam_val = int(query.split("=", 1)[1].strip())
+            except ValueError:
+                return queryset.none()
+            if 0 <= jam_val <= 23:
+                return queryset.filter(teaching__start_time__hour=jam_val)
+            return queryset.none()
+ 
+        # 2. Filter khusus "::jadwal=" (contoh: "::jadwal=senin" atau "::jadwal=0")
+        if query_lower.startswith("::jadwal="):
+            value = query.split("=", 1)[1].strip().lower()
+            if value in self.DAY_MAPPING:
+                day = self.DAY_MAPPING[value]
+            elif value.isdigit() and 0 <= int(value) <= 6:
+                day = int(value)
+            else:
+                return queryset.none()
+            return queryset.filter(teaching__day_of_week=day)
+ 
+        # 3. Filter pencarian umum (Client, Kode Kontrak, Waktu biasa)
+        filters = Q(teaching__client__nama__icontains=query) | \
+                  Q(teaching__client__kontak__icontains=query) | \
+                  Q(kontrak__kode_kontrak__icontains=query) | \
+                  Q(teaching__start_time__icontains=query)
+ 
+        # Query berupa nama hari / angka 0-6 -> hari dari tanggal_pelaksanaan.
+        # DAY_MAPPING: 0 = Senin ... 6 = Minggu, sedangkan __iso_week_day: 1 = Senin ... 7 = Minggu.
+        if query_lower in self.DAY_MAPPING:
+            filters |= Q(tanggal_pelaksanaan__iso_week_day=self.DAY_MAPPING[query_lower] + 1)
+        elif query.isdigit() and 0 <= int(query) <= 6:
+            filters |= Q(tanggal_pelaksanaan__iso_week_day=int(query) + 1)
+ 
+        return queryset.filter(filters)
+ 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        page_obj = context['page_obj']
+        context['custom_page_range'] = page_obj.paginator.get_elided_page_range(
+            page_obj.number,
+            on_each_side=2,
+            on_ends=1
+        )
+        return context
 
 ######## End Teaching ########

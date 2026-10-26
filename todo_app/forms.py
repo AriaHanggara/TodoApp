@@ -49,16 +49,19 @@ class ClientForm(forms.ModelForm):
 
 
 class ContractForm(forms.ModelForm):
+    dropdown_parent = "#add-contract-modal"
+
     client = forms.ModelChoiceField(
         queryset=Client.objects.all(),
         widget=autocomplete.ModelSelect2(
             url='todo_app:autocomplete_client',
-            attrs={
-                'data-dropdown-parent': '#add-contract-modal',
-                'class': 'input input-bordered w-full'
-            }
+            attrs={'class': 'input input-bordered w-full'}
         )
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['client'].widget.attrs['data-dropdown-parent'] = self.dropdown_parent
 
     class Meta:
         model = Contract
@@ -81,7 +84,6 @@ class ContractForm(forms.ModelForm):
                 attrs={
                     "class": "input input-bordered w-full",
                     "min": 0,
-                    # "required": 'true',
                 }
             ),
             "total_biaya": forms.NumberInput(
@@ -113,6 +115,8 @@ class ContractForm(forms.ModelForm):
 
 
 class ContractUpdateForm(ContractForm):
+    dropdown_parent = "#edit-contract-modal"
+
     class Meta(ContractForm.Meta):
         fields = ContractForm.Meta.fields + ["pembayaran", "contract_status"]
         widgets = {
@@ -131,21 +135,15 @@ class ContractUpdateForm(ContractForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if 'client' in self.fields:
-            self.fields['client'].widget.attrs['data-dropdown-parent'] = '#edit-contract-modal'
-
 
 class PaymentForm(forms.ModelForm):
+    dropdown_parent = '#add-payment-modal'
+
     contract = forms.ModelChoiceField(
         queryset=Contract.objects.all(),
         widget=autocomplete.ModelSelect2(
             url='todo_app:autocomplete_contract',
-            attrs={
-                'data-dropdown-parent': '#add-payment-modal',
-                'class': 'input input-bordered w-full'
-            }
+            attrs={'class': 'input input-bordered w-full'}
         )
     )
 
@@ -165,6 +163,10 @@ class PaymentForm(forms.ModelForm):
             },
         )
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['contract'].widget.attrs['data-dropdown-parent'] = self.dropdown_parent
 
     class Meta:
         model = Payment
@@ -187,10 +189,7 @@ class PaymentForm(forms.ModelForm):
 
 
 class PaymentUpdateForm(PaymentForm):
-    def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            if 'contract' in self.fields:
-                self.fields['contract'].widget.attrs['data-dropdown-parent'] = '#edit-payment-modal'
+    dropdown_parent = '#edit-payment-modal'
 
 
 class TeachingForm(forms.ModelForm):
@@ -262,15 +261,6 @@ class TeachingForm(forms.ModelForm):
                 },
             ),
         }
-
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     start_time = cleaned_data.get("start_time")
-    #     end_time = cleaned_data.get("end_time")
-    #     if start_time and end_time:
-    #         if start_time >= end_time:
-    #             self.add_error("end_time", "Jam selesai harus lebih besar dari jam mulai.")
-    #     return cleaned_data
 
 
 class TeachingUpdateForm(TeachingForm):

@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<title>Tentang {{ profile.nickname }} | Bahasa Jepang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  /* Desain WASHI: kertas washi, tinta sumi, stempel hanko. Palet mandiri, tidak mengikuti tema DaisyUI. */
+  .washi { --paper:#f7f3ea; --ink:#1f1b16; --hanko:#c1272d; --line:#d9d0bd; background:var(--paper); color:var(--ink); }
+  .washi *  { border-color: var(--line); }
+  .washi .serif, .washi h1, .washi h2, .washi h3 { font-family:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif; }
+  .washi .vert  { writing-mode: vertical-rl; text-orientation: upright; }
+  .washi .hanko { background:var(--hanko); color:#fff; transform:rotate(-6deg); }
+  .washi .red   { color:var(--hanko); }
+  .washi .muted { color:color-mix(in oklab, var(--ink) 62%, transparent); }
+  .washi .btn-ink { background:var(--ink); color:var(--paper); border:0; }
+  .washi .btn-ink:hover { background:var(--hanko); }
+</style>
+{% endblock title %}
+
+{% block content %}
+<div class="washi mx-auto mb-20 max-w-6xl space-y-24 rounded-3xl border px-6 py-12 md:px-14 md:py-16">
+
+  <!-- HERO -->
+  <header class="grid items-center gap-10 md:grid-cols-[auto_1fr]">
+    <div class="flex items-start justify-center gap-6" aria-hidden="true">
+      <p class="vert serif text-5xl font-extrabold leading-none tracking-widest md:text-7xl">日本語を学ぼう</p>
+      <div class="hanko serif grid size-16 place-items-center text-2xl font-bold shadow-md">先生</div>
+    </div>
+    <div>
+      {% if profile.photo %}<img src="{{ profile.photo }}" alt="Foto {{ profile.nickname }}" class="mb-6 size-28 rounded-sm object-cover grayscale">{% endif %}
+      <p class="red text-sm font-bold tracking-[.3em]">GURU BAHASA JEPANG · SD, SMP/SMA, PEKERJA</p>
+      <h1 class="mt-3 text-5xl font-extrabold md:text-6xl">{{ profile.nickname }}</h1>
+      <p class="muted mt-5 max-w-xl text-lg leading-relaxed">{{ profile.tagline }}</p>
+      <div class="mt-8 flex flex-wrap items-center gap-5">
+        <a href="{{ wa_url }}" target="_blank" rel="noopener" class="btn btn-ink btn-lg">Hubungi via WhatsApp</a>
+        <a href="#portofolio" class="serif text-lg underline underline-offset-8 decoration-[var(--hanko)]">Lihat portofolio →</a>
+      </div>
+    </div>
+  </header>
+
+  <dl class="grid grid-cols-2 divide-x border-y md:grid-cols-4">
+    {% for s in stats %}
+    <div class="px-4 py-6 text-center">
+      <dt class="muted text-xs tracking-widest">{{ s.label }}</dt>
+      <dd class="serif red mt-1 text-4xl font-extrabold">{{ s.value }}</dd>
+    </div>
+    {% endfor %}
+  </dl>
+
+  <!-- 01 TENTANG -->
+  <section id="tentang" class="scroll-mt-28">
+    <div class="flex items-baseline gap-4 border-b pb-3"><span class="serif red text-4xl font-extrabold">01</span><h2 class="text-2xl font-bold">Tentang Saya · 自己紹介</h2></div>
+    <div class="mt-8 grid gap-12 md:grid-cols-5">
+      <div class="serif space-y-5 text-lg leading-loose md:col-span-3">{% for p in profile.bio %}<p>{{ p }}</p>{% endfor %}</div>
+      <dl class="divide-y border-y md:col-span-2">
+        {% for label, value in profile.details %}
+        <div class="flex justify-between gap-4 py-3 text-sm"><dt class="muted">{{ label }}</dt><dd class="text-right font-semibold">{{ value }}</dd></div>
+        {% endfor %}
+      </dl>
+    </div>
+  </section>
+
+  <!-- 02 PROGRAM -->
+  <section id="program" class="scroll-mt-28">
+    <div class="flex items-baseline gap-4 border-b pb-3"><span class="serif red text-4xl font-extrabold">02</span><h2 class="text-2xl font-bold">Program menurut usia & tujuan · 授業</h2></div>
+    <div class="mt-8 grid md:grid-cols-3 md:divide-x">
+      {% for p in programs %}
+      <article class="flex flex-col py-6 md:px-8 md:first:pl-0 md:last:pr-0">
+        <div class="flex items-center justify-between">
+          <span class="text-3xl" aria-hidden="true">{{ p.icon }}</span>
+          {% if p.featured %}<span class="hanko serif px-2 py-1 text-xs font-bold">PALING DIMINATI</span>{% endif %}
+        </div>
+        <h3 class="mt-4 text-2xl font-bold">{{ p.title }}</h3>
+        <p class="red text-sm font-bold">{{ p.audience }}</p>
+        <p class="muted mt-3">{{ p.desc }}</p>
+        <dl class="mt-5 space-y-3 text-sm">
+          {% for label, value in p.specs %}<div><dt class="muted text-xs tracking-widest">{{ label|upper }}</dt><dd class="font-semibold">{{ value }}</dd></div>{% endfor %}
+        </dl>
+        <a href="{{ wa_url }}" target="_blank" rel="noopener" class="serif mt-auto pt-6 font-bold underline underline-offset-8 decoration-[var(--hanko)]">Tanya program ini →</a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- 03 PORTOFOLIO -->
+  <section id="portofolio" class="scroll-mt-28">
+    <div class="flex items-baseline gap-4 border-b pb-3"><span class="serif red text-4xl font-extrabold">03</span><h2 class="text-2xl font-bold">Portofolio · 実績</h2></div>
+    <div class="mt-8 grid gap-12 lg:grid-cols-2">
+      <div>
+        <h3 class="muted mb-2 text-sm font-bold tracking-widest">PENGALAMAN</h3>
+        <ul class="divide-y border-y">
+          {% for e in experiences %}
+          <li class="grid grid-cols-[7rem_1fr] gap-4 py-4"><span class="serif red text-sm font-bold">{{ e.year }}</span>
+            <div><h4 class="serif font-bold">{{ e.title }}</h4><p class="muted text-sm">{{ e.place }}. {{ e.desc }}</p></div></li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div>
+        <h3 class="muted mb-2 text-sm font-bold tracking-widest">PRESTASI, KEGIATAN & KARYA</h3>
+        <ul class="divide-y border-y">
+          {% for i in portfolio %}
+          <li class="grid grid-cols-[7rem_1fr] gap-4 py-4"><span class="serif red text-sm font-bold">{{ i.year }}<br><span class="muted font-normal">{{ i.tag }}</span></span>
+            <div><h4 class="serif font-bold">{{ i.icon }} {{ i.title }}</h4><p class="muted text-sm">{{ i.desc }}</p></div></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 TESTIMONI -->
+  <section id="testimoni" class="scroll-mt-28">
+    <div class="flex items-baseline gap-4 border-b pb-3"><span class="serif red text-4xl font-extrabold">04</span><h2 class="text-2xl font-bold">Kata mereka · 声</h2></div>
+    <div class="mt-8 grid gap-10 md:grid-cols-3">
+      {% for t in testimonials %}
+      <figure><blockquote class="serif text-lg leading-relaxed">“{{ t.quote }}”</blockquote>
+        <figcaption class="mt-3 text-sm"><b>{{ t.name }}</b> <span class="muted">· {{ t.role }}</span></figcaption></figure>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- 05 KONTAK -->
+  <section id="kontak" class="scroll-mt-28 grid items-center gap-10 border-t pt-12 md:grid-cols-[1.4fr_1fr]">
+    <div>
+      <div class="flex items-baseline gap-4"><span class="serif red text-4xl font-extrabold">05</span><h2 class="text-2xl font-bold">Mari mulai belajar · お問い合わせ</h2></div>
+      <p class="muted mt-4 max-w-lg">Scan QR atau klik tombol untuk chat via WhatsApp. Tanyakan jadwal, biaya, dan kelas percobaan.</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href="{{ wa_url }}" target="_blank" rel="noopener" class="btn btn-ink btn-lg">{{ profile.whatsapp_display }}</a>
+        <button type="button" id="copy-wa" class="btn btn-lg btn-outline" data-url="{{ wa_url }}">Salin tautan</button>
+      </div>
+    </div>
+    <div class="mx-auto text-center">
+      <div class="border-2 bg-white p-4" style="border-color:var(--ink)">
+        <div id="wa-qr" class="size-48 break-all text-xs text-neutral-700" data-url="{{ wa_url }}" role="img" aria-label="QR code WhatsApp {{ profile.nickname }}"><noscript>{{ wa_url }}</noscript></div>
+      </div>
+      <p class="serif mt-3 text-sm font-bold">Scan untuk chat WhatsApp</p>
+    </div>
+  </section>
+</div>
+{% endblock content %}
+
+{% block extra_js %}{% include 'about_common.html' %}{% endblock %}
